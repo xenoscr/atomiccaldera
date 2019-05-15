@@ -1,4 +1,4 @@
-# # Atomic-Caldera
+## Atomic-Caldera
 A Python 3 script to convert Red Canary Atomic Red Team Tests to MITRE Caldera Stockpile YAML ability files.
 
 # Backstory
@@ -29,5 +29,37 @@ Clone the MITRE CTI repository:
 git clone https://github.com/mitre/cti.git
 ```
 # Usage
+Atomic-Caldera requires only two parameters to run. The input directory where the Red Canary Atomic Red Team "atomics" folder is located and the path to the MITRE CTI repository. The output folder option and CSV file options are optional, if they are not supplied, Atomic-Caldera will save these files in the current working directory.
+```
+usage: Atomic-Caldera.py [-h] [-i INPUTDIR] [-a ATTRIBUTEDIR] [-c CTI]
+                         [-o CSV]
+
+Convert Red Canary Attomic Red Team YAML files to Caldera Stockpile YAML
+files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUTDIR, --inputdir INPUTDIR
+                        The Red Canary "atomics" folder path.
+  -a ATTRIBUTEDIR, --attributedir ATTRIBUTEDIR
+                        The directory that the converted YAML files will be
+                        stored in.
+  -c CTI, --cti CTI     The path to the MITRE CTI database, ./cti is used by
+                        default.
+  -o CSV, --csv CSV     The path to the CSV catalog file.
 ```
 
+*Example*
+```
+./Atomic-Caldera.py -i ~/repos/atomic-red-team/atomics -c ~/repos/cti
+```
+*Example*
+```
+./Atomic-Caldera.py -i ~/repos/atomic-red-team/atomics -c ~/repos/cti -f ~/woring/ -o ~/working/atomic-caldera.csv
+```
+# License
+See the [LICENSE](https://github.com/xenoscr/Atomic-Caldera/blob/master/LICENSE)
+
+# Credits
+CTI and Caldara are maintained by MITRE: @mitre - https://github.com/mitre
+Atomic Red Team is maintained by Red Canary Co.: @redcanaryco - https://github.com/redcanaryco
