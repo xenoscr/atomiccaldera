@@ -1,4 +1,4 @@
-# Atomic-Caldera
+## Atomic-Caldera
 A Python 3 script to convert Red Canary Atomic Red Team Tests to MITRE Caldera Stockpile YAML ability files.
 
 # Backstory
@@ -14,3 +14,7 @@ Python 3.6.8+ with the following libraries installed
 Atomic-Caldera requires the following repositories be stored locally somewhere:
 * https://github.com/redcanaryco/atomic-red-team
 * https://github.com/mitre/cti
+
+# Installation
+Install required Python modules:
+`pip install -r requirements.txt`
