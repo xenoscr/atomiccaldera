@@ -92,7 +92,7 @@ def query_yes_no(question, default="no"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
-def main(inputDir, attributeDir, csvPath, ctiPath):
+def main(inputDir, ouptutDir, csvPath, ctiPath):
     logging.debug('Starting main function.')
     # Load the MITRE library
     fs = FileSystemSource(os.path.join(ctiPath, 'enterprise-attack/'))
@@ -208,7 +208,7 @@ def main(inputDir, attributeDir, csvPath, ctiPath):
 
                             # Make sure the abilities directory exists and create it if it does not.
                             try:
-                                abilityDir = os.path.join(attributeDir, 'abilities/')
+                                abilityDir = os.path.join(ouptutDir, 'abilities/')
                                 if not os.path.exists(abilityDir):
                                     os.makedirs(abilityDir)
                                     logging.debug('Ability directory created: {}'.format(abilityDir))
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     # Parse the command arguments and display a usage message if incorrect parameters are provided.
     parser = argparse.ArgumentParser(description = 'Convert Red Canary Attomic Red Team YAML files to Caldera Stockpile YAML files.')
     parser.add_argument("-i", "--inputdir", type=str, help='The Red Canary \"atomics\" folder path.')
-    parser.add_argument("-a", "--attributedir", type=str, help='The directory that the converted YAML files will be stored in.')
+    parser.add_argument("-f", "--fileoutdir", type=str, help='The directory that the converted YAML files will be stored in.')
     parser.add_argument("-c", "--cti", type=str, help='The path to the MITRE CTI database, ./cti is used by default.')
     parser.add_argument("-o", "--csv", type=str, help='The path to the CSV catalog file.')
     args = parser.parse_args()
@@ -303,49 +303,59 @@ if __name__ == "__main__":
         curPath = os.path.dirname(os.path.realpath(__file__))
         ctiPath = os.path.join(curPath, 'cti/')
 
-    if not os.path.exists(ctiPath) and os.path.exists("{ctiPath}/enterprise-attack/".format(ctiPath = ctiPath)):
-        logging.error('The provided path to the MITRE CTI database is incorrect or corrupt.')
+    if not (os.path.exists(ctiPath) and os.path.exists("{ctiPath}/enterprise-attack/".format(ctiPath = ctiPath))):
         parser.print_help(sys.stderr)
         print('\n\n')
+        logging.error('The provided path to the MITRE CTI database is incorrect or corrupt.')
+        raise SystemExit
 
     logging.debug('The provided CTI path is: {}'.format(ctiPath))
-
-    # Get the Red Canary Atomic Red Team repository location
-    if args.inputdir:
-        if os.path.exists(args.inputdir) and os.path.exists("{argPath}/T1002".format(argPath = args.inputdir)):
-            if os.path.exists(args.attributedir):
-                logging.debug('Checking attributedir.')
-                abilityDir = os.path.join(args.attributedir, 'abilities/')
-                if os.path.exists(abilityDir):
-                    logging.debug('Checking for existing YAML files in: {}.'.format(abilityDir))
-                    fileCount = 0
-                    for root, dirs, files in os.walk(abilityDir):
-                        for procFile in files:
-                            fullFile = os.path.join(root, procFile)
-                            if os.path.splitext(fullFile)[-1].lower() == '.yml':
-                                fileCount += 1
-                else:
-                    logging.debug('No abilities directory found in provided output path, launching main.')
-                    main(args.inputdir, args.attributedir, csvPath, ctiPath)
-                    raise SystemExit
-		    	
+    
+    # Check the output directory
+    if args.fileoutdir:
+        if os.path.exists(args.fileoutdir):
+            logging.debug('Checking fileoutdir.')
+            abilityDir = os.path.join(args.fileoutdir, 'abilities/')
+            if os.path.exists(abilityDir):
+                logging.debug('Checking for existing YAML files in: {}.'.format(abilityDir))
+                fileCount = 0
+                for root, dirs, files in os.walk(abilityDir):
+                    for procFile in files:
+                        fullFile = os.path.join(root, procFile)
+                        if os.path.splitext(fullFile)[-1].lower() == '.yml':
+                            fileCount += 1
                 if fileCount > 0:
                     answer = query_yes_no('The directory already contains YAML files, please be sure you are not going to duplicate files. Would you like to continue?')
                     if answer == True:
-                        main(args.inputdir, args.attributedir, csvPath, ctiPath)
+                        outputDir = args.fileoutdir
                     else:
                         print('You chose not to coninue. Please double-check your work and try again if needed.')
                         raise SystemExit
                 else:
-                    main(args.inputdir, args.attributedir, csvPath, ctiPath)
-                    raise SystemExit
+                    outputDir = args.fileoutdir
             else:
-                logging.error('The provided output directory is not valid or does not exist.\n')
-                parser.print_help(sys.stderr)
-                print('\n\n')
+                logging.debug('No abilities directory found in provided output path')
+                outputDir = args.fileoutdir
         else:
-            logging.error('The provided input directory is not valid or does not exist.\n')
             parser.print_help(sys.stderr)
             print('\n\n')
+            logging.debug('The provided output directory is invalid\n')
+            raise SystemExit
+    else:
+        logging.debug('The provided output directory was not provided, using current working directory.\n')
+        outputDir = os.getcwd()
+
+    # Get the Red Canary Atomic Red Team repository location
+    if args.inputdir:
+        if os.path.exists(args.inputdir) and os.path.exists("{argPath}/T1002".format(argPath = args.inputdir)):
+            main(args.inputdir, outputDir, csvPath, ctiPath)
+        else:
+            parser.print_help(sys.stderr)
+            print('\n\n')
+            logging.error('The provided input directory is not valid or does not exist.\n')
+            raise SystemExit
     else:
         parser.print_help(sys.stderr)
+        print('\n\n')
+        logging.error('No input directory was provided.\n')
+        raise SystemExit
