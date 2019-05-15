@@ -62,7 +62,7 @@ The script is not perfect but, it gets the bulk fo the work done at this time. I
 - [ ] Replace links to Red Canary's Atomic Red Team database with '#{caldera}' tags so that payloads can be served locally from the Caldera server.
 - [ ] Break up the main() function into samller functions. There are other YAML sources that I could injest with the same script.
 - [ ] Include the option to copy the generated '.yml' files into the correspoinding Caldera folders.
-# License
+## License
 See the [LICENSE](https://github.com/xenoscr/Atomic-Caldera/blob/master/LICENSE)
 
 ## Credits
