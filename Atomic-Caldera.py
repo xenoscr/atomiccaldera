@@ -93,6 +93,7 @@ def query_yes_no(question, default="no"):
                              "(or 'y' or 'n').\n")
 
 def main(inputDir, attributeDir, csvPath, ctiPath):
+    logging.debug('Starting main function.')
     # Load the MITRE library
     fs = FileSystemSource(os.path.join(ctiPath, 'enterprise-attack/'))
 
@@ -180,68 +181,70 @@ def main(inputDir, attributeDir, csvPath, ctiPath):
                         logging.debug('Collected attack executor: {}'.format(executor))
                         logging.debug('Collected attack command: {}'.format(command))
 
-                    # Check to see if the command has been catalogued in the CSV previously
-                    if not any((line['attackID'] == attackID) and (line['command'] == command) for line in csvFile):
+                        # Check to see if the command has been catalogued in the CSV previously
+                        if not any((line['attackID'] == attackID) and (line['command'] == command) for line in csvFile):
+                            logging.debug('Collecting new YAML info.')
 
-                        # Ensure we don't somehow use a duplicate UUID value
-                        uuidBool = True
+                            # Ensure we don't somehow use a duplicate UUID value
+                            uuidBool = True
 
-                        while(uuidBool):
-                            attackUUID = uuid.uuid4()
-                            if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
-                                    uuidBool = False
+                            while(uuidBool):
+                                attackUUID = uuid.uuid4()
+                                if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
+                                        uuidBool = False
 
-                        # Put the custom dictionary together that will be exported/dumped to a YAML file
-                        # the 'command' is formatted as a scalar string.
-                        newYAML = [{ 'id': str(attackUUID),
-                            'name': displayName,
-                            'description': testDescription.strip().replace('\n', ' ').replace('  ', ' '),
-                            'tactic': tactic,
-                            'technique': { 'attack_id': attackID, 'name': attackName },
-                            'executors': { executor: { 'command': cmdStr(command) }}}]
+                            # Put the custom dictionary together that will be exported/dumped to a YAML file
+                            # the 'command' is formatted as a scalar string.
+                            newYAML = [{ 'id': str(attackUUID),
+                                'name': displayName,
+                                'description': '{} (Atomic Red Team)'.format(testDescription.strip().replace('\n', ' ').replace('  ', ' ')),
+                                'tactic': tactic,
+                                'technique': { 'attack_id': attackID, 'name': attackName },
+                                'executors': { executor: { 'command': cmdStr(command) }}}]
 
-                        logging.debug(newYAML)
+                            logging.debug(newYAML)
 
-                        # Generate New YAML
+                            # Generate New YAML
 
-                        # Make sure the abilities directory exists and create it if it does not.
-                        try:
-                            abilityDir = os.path.join(attributeDir, 'abilities/')
-                            if not os.path.exists(abilityDir):
-                                os.makedirs(abilityDir)
-                                logging.debug('Ability directory created: {}'.format(abilityDir))
-                            else:
-                                logging.debug('Ability directory exists: {}'.format(abilityDir))
-                        except:
-                            logging.error('Failed to create the abilty directory.')
-                            raise SystemExit
+                            # Make sure the abilities directory exists and create it if it does not.
+                            try:
+                                abilityDir = os.path.join(attributeDir, 'abilities/')
+                                if not os.path.exists(abilityDir):
+                                    os.makedirs(abilityDir)
+                                    logging.debug('Ability directory created: {}'.format(abilityDir))
+                                else:
+                                    logging.debug('Ability directory exists: {}'.format(abilityDir))
+                            except:
+                                logging.error('Failed to create the abilty directory.')
+                                raise SystemExit
 
-                        # Make sure the tactic directory exists and create it if it does not.
-                        try:
-                            if not os.path.exists(os.path.join(abilityDir, tactic)):
-                                os.makedirs(os.path.join(abilityDir, tactic))
-                                logging.debug('Tactic directory created: {}'.format(os.path.join(abilityDir, tactic)))
-                            else:
-                                logging.debug('Tactic directory exists: {}'.format(os.path.join(abilityDir, tactic)))
-                        except:
-                            logging.error('Tactic is empty?')
-                            raise SystemExit
+                            # Make sure the tactic directory exists and create it if it does not.
+                            try:
+                                if not os.path.exists(os.path.join(abilityDir, tactic)):
+                                    os.makedirs(os.path.join(abilityDir, tactic))
+                                    logging.debug('Tactic directory created: {}'.format(os.path.join(abilityDir, tactic)))
+                                else:
+                                    logging.debug('Tactic directory exists: {}'.format(os.path.join(abilityDir, tactic)))
+                            except:
+                                logging.error('Tactic is empty?')
+                                raise SystemExit
 
-                        # Write the YAML file to the correct directory using the UUID as the name.
-                        try:
-                            with open(os.path.join(abilityDir, tactic, '{}.yaml'.format(str(attackUUID))), 'w') as newYAMLFile:
-                                dump = yaml.dump(newYAML, default_style= None, default_flow_style = False, allow_unicode = True, encoding = None, sort_keys = False)
-                                newYAMLFile.write(dump)
-                            logging.debug('YAML file written: {}'.format(os.path.join(abilityDir, tactic, '{}.yaml'.format(str(attackUUID)))))
-                        except:
-                            logging.error('Error creating YAML file.')
-                            raise SystemExit
+                            # Write the YAML file to the correct directory using the UUID as the name.
+                            try:
+                                with open(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID))), 'w') as newYAMLFile:
+                                    dump = yaml.dump(newYAML, default_style = None, default_flow_style = False, allow_unicode = True, encoding = None, sort_keys = False)
+                                    newYAMLFile.write(dump)
+                                logging.debug('YAML file written: {}'.format(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID)))))
+                            except Exception as e:
+                                logging.error('Error creating YAML file.')
+                                print(e)
+                                raise SystemExit
 
-                        # Append the newly converted ability information to the variable that will written to the CSV file
-                        newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'command': command }
-                        csvFile.append(newLine)
-                    else:
-                        logging.debug('The technique already exists.')
+                            # Append the newly converted ability information to the variable that will written to the CSV file
+                            newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'command': command }
+                            csvFile.append(newLine)
+                        else:
+                            logging.debug('The technique already exists.')
 
         # Write the content of CSV file to disk
         with open(csvPath, 'w', newline='') as newCSVFile:
@@ -257,7 +260,7 @@ if __name__ == "__main__":
     yaml.add_representer(cmdStr, cmd_presenter)
 
     # Setup Debugging messages
-    logLvl = logging.INFO
+    logLvl = logging.ERROR
     logging.basicConfig(level=logLvl, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.debug('Debugging logging is on.')
 
@@ -273,7 +276,7 @@ if __name__ == "__main__":
     if args.csv:
         csvPath = args.csv
     else:
-        csvPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'atomic-caldera.csv')
+        csvPath = os.path.join(os.getcwd(), 'atomic-caldera.csv')
 
     if os.path.exists(csvPath):
         try:
@@ -305,18 +308,27 @@ if __name__ == "__main__":
         parser.print_help(sys.stderr)
         print('\n\n')
 
+    logging.debug('The provided CTI path is: {}'.format(ctiPath))
+
     # Get the Red Canary Atomic Red Team repository location
     if args.inputdir:
         if os.path.exists(args.inputdir) and os.path.exists("{argPath}/T1002".format(argPath = args.inputdir)):
             if os.path.exists(args.attributedir):
+                logging.debug('Checking attributedir.')
                 abilityDir = os.path.join(args.attributedir, 'abilities/')
-                if os.path.exists(os.path.exists(abilityDir)):
+                if os.path.exists(abilityDir):
+                    logging.debug('Checking for existing YAML files in: {}.'.format(abilityDir))
                     fileCount = 0
                     for root, dirs, files in os.walk(abilityDir):
                         for procFile in files:
                             fullFile = os.path.join(root, procFile)
-                            if os.path.splitext(fullFile)[-1].lower() == '.yaml':
+                            if os.path.splitext(fullFile)[-1].lower() == '.yml':
                                 fileCount += 1
+                else:
+                    logging.debug('No abilities directory found in provided output path, launching main.')
+                    main(args.inputdir, args.attributedir, csvPath, ctiPath)
+                    raise SystemExit
+		    	
                 if fileCount > 0:
                     answer = query_yes_no('The directory already contains YAML files, please be sure you are not going to duplicate files. Would you like to continue?')
                     if answer == True:
@@ -324,6 +336,9 @@ if __name__ == "__main__":
                     else:
                         print('You chose not to coninue. Please double-check your work and try again if needed.')
                         raise SystemExit
+                else:
+                    main(args.inputdir, args.attributedir, csvPath, ctiPath)
+                    raise SystemExit
             else:
                 logging.error('The provided output directory is not valid or does not exist.\n')
                 parser.print_help(sys.stderr)
