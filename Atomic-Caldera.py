@@ -92,12 +92,12 @@ def query_yes_no(question, default="no"):
 			sys.stdout.write("Please respond with 'yes' or 'no' "
 							 "(or 'y' or 'n').\n")
 
-def main(inputDir, ouptutDir, csvPath, ctiPath):
+def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 	logging.debug('Starting main function.')
 	# Load the MITRE library
 	fs = FileSystemSource(os.path.join(ctiPath, 'enterprise-attack/'))
 
-	# Check for an existing CSV file
+	# Check for an existing catalog CSV file
 	try:
 		csvFile = []
 		with open(csvPath, 'r') as oldCSVFile:
@@ -105,10 +105,23 @@ def main(inputDir, ouptutDir, csvPath, ctiPath):
 			for line in reader:
 				csvFile.append(line)
 
-		logging.debug('Successfully loaded CSV file.')
+		logging.debug('Successfully loaded catalog CSV file.')
 	except:
 		csvFile = []
-		logging.debug('CSV was not loaded, creating empty list.')
+		logging.debug('Catalog CSV was not loaded, creating empty list.')
+
+	# Check for an existing variable CSV file
+	try:
+		varCsvFile = []
+		with open(varCsvPath, 'r') as oldVarCSVFile:
+			reader = csv.DictReader(oldVarCSVFile)
+			for line in reader:
+				varCsvFile.append(line)
+
+		logging.debug('Successfully loaded variable CSV file.')
+	except:
+		varCsvFile = []
+		logging.debug('Variable CSV was not loaded, creating empty list.')
 
 	# Walk the directory provided as the input directory to find
 	# the YAML files to process.
@@ -154,20 +167,29 @@ def main(inputDir, ouptutDir, csvPath, ctiPath):
 						testDescription = atomic['description']
 						# Some tests do not have a 'command' key, skip it if it does not.
 						if 'command' in atomic['executor'].keys():
+							# Ensure we don't somehow use a duplicate UUID value
+							uuidBool = True
+							while(uuidBool):
+								attackUUID = uuid.uuid4()
+								if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
+										uuidBool = False
+							# Grab the executor name
+							executor = atomic['executor']['name']
 							# grab the command
 							command = atomic['executor']['command']
+							# Initialize a new list to collect varialbe/argument values
+							varList = []
 							# If input arguments exist, replace them by looping through each
 							# and using regex replacement.
 							if 'input_arguments' in atomic.keys():
 								for argument in atomic['input_arguments'].keys():
 									try:
-										command = re.sub(r"\#{{{argName}}}".format(argName = str(argument)), str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode(), command)
+										#curVar = str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode()
+										curVar = str(atomic['input_arguments'][argument]['default'])
 									except:
 										logging.error('Unable to encode command.')
 										raise SystemExit
-
-							# Grab the executor name
-							executor = atomic['executor']['name']
+									varList.append({'attackUUID': attackUUID, 'attackID': attackID, 'executor': executor, 'variable': argument, 'value': curVar})
 						else:
 							command = ''
 							executor = ''
@@ -184,14 +206,6 @@ def main(inputDir, ouptutDir, csvPath, ctiPath):
 						# Check to see if the command has been catalogued in the CSV previously
 						if not any((line['attackID'] == attackID) and (line['command'] == command) for line in csvFile):
 							logging.debug('Collecting new YAML info.')
-
-							# Ensure we don't somehow use a duplicate UUID value
-							uuidBool = True
-
-							while(uuidBool):
-								attackUUID = uuid.uuid4()
-								if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
-										uuidBool = False
 
 							# Put the custom dictionary together that will be exported/dumped to a YAML file
 							# the 'command' is formatted as a scalar string.
@@ -243,6 +257,12 @@ def main(inputDir, ouptutDir, csvPath, ctiPath):
 							# Append the newly converted ability information to the variable that will written to the CSV file
 							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'command': command }
 							csvFile.append(newLine)
+
+							# Append the variables to the variable CSV file
+							if len(varList) != 0:
+								for variable in varList:
+									newLine = { 'attackUUID': variable['attackUUID'], 'attackID': variable['attackID'], 'executor': variable['executor'], 'variable': variable['variable'], 'value': variable['value'] }
+									varCsvFile.append(newLine)
 						else:
 							logging.debug('The technique already exists.')
 
@@ -253,6 +273,15 @@ def main(inputDir, ouptutDir, csvPath, ctiPath):
 
 			writer.writeheader()
 			for line in csvFile:
+				writer.writerow(line)
+
+		# Write the content of variable CSV file to disk
+		with open(varCsvPath, 'w', newline='') as newVarCSVFile:
+			fieldNames = ['attackUUID', 'attackID', 'executor', 'variable', 'value']
+			writer = csv.DictWriter(newVarCSVFile, fieldnames = fieldNames)
+
+			writer.writeheader()
+			for line in varCsvFile:
 				writer.writerow(line)
 
 if __name__ == "__main__":
@@ -270,6 +299,7 @@ if __name__ == "__main__":
 	parser.add_argument("-f", "--fileoutdir", type=str, help='The directory that the converted YAML files will be stored in.')
 	parser.add_argument("-c", "--cti", type=str, help='The path to the MITRE CTI database, ./cti is used by default.')
 	parser.add_argument("-o", "--csv", type=str, help='The path to the CSV catalog file.')
+	parser.add_argument("-v", "--varcsv", type=str, help='The path to the CSV file containing variables for each test.')
 	args = parser.parse_args()
 
 	# Get the CSV File location
@@ -278,6 +308,11 @@ if __name__ == "__main__":
 	else:
 		csvPath = os.path.join(os.getcwd(), 'atomic-caldera.csv')
 
+	if args.varcsv:
+		varCsvPath = args.varcsv
+	else:
+		varCsvPath = os.path.join(os.getcwd(), 'atomic-variables.csv')
+
 	if os.path.exists(csvPath):
 		try:
 			with open(csvPath, 'r') as csvFile:
@@ -285,16 +320,34 @@ if __name__ == "__main__":
 		except:
 			parser.print_help(sys.stderr)
 			print('\n\n')
-			logging.error('The provided path to the CSV file is invalid or the CSV file is corrupted.')
+			logging.error('The provided path to the catalog CSV file is invalid or the CSV file is corrupted.')
 			raise SystemExit
 
 		if not line == 'attackUUID,attackID,command\n':
 			parser.print_help(sys.stderr)
 			print('\n\n')
-			logging.error('The provided path to the CSV file is invalid or the CSV file is corrupted.')
+			logging.error('The provided path to the catalog CSV file is invalid or the CSV file is corrupted.')
 			raise SystemExit
 	else:
-		logging.debug('The CSV fle does not exist, it will be created.')
+		logging.debug('The catalog CSV fle does not exist, it will be created.')
+
+	if os.path.exists(varCsvPath):
+		try:
+			with open(varCsvPath, 'r') as varCsvFile:
+				line = varCsvFile.readline()
+		except:
+			parser.print_help(sys.stderr)
+			print('\n\n')
+			logging.error('The provided path to the variable CSV file is invalid or the CSV file is corrupted.')
+			raise SystemExit
+
+		if not line == 'attackUUID,attackID,executor,variable,value\n':
+			parser.print_help(sys.stderr)
+			print('\n\n')
+			logging.error('The provided path to the variable CSV file is invalid or the CSV file is corrupted.')
+			raise SystemExit
+	else:
+		logging.debug('The variable CSV fle does not exist, it will be created.')
 
 	# Get the MITRE CTI database location from the provided path or default location
 	if args.cti:
@@ -348,7 +401,7 @@ if __name__ == "__main__":
 	# Get the Red Canary Atomic Red Team repository location
 	if args.inputdir:
 		if os.path.exists(args.inputdir) and os.path.exists("{argPath}/T1002".format(argPath = args.inputdir)):
-			main(args.inputdir, outputDir, csvPath, ctiPath)
+			main(args.inputdir, outputDir, csvPath, varCsvPath, ctiPath)
 		else:
 			parser.print_help(sys.stderr)
 			print('\n\n')
