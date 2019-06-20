@@ -48,7 +48,7 @@ def cmd_presenter(dumper, data):
 	return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
 
 def getMITREPhase(fs, attackID):
-	filter = [
+   filter = [
 			Filter('type', '=', 'attack-pattern'),
 			Filter('external_references.external_id', '=', attackID)
 		]
@@ -158,93 +158,28 @@ def main(inputDir, ouptutDir, csvPath, ctiPath):
 							command = atomic['executor']['command']
 							# If input arguments exist, replace them by looping through each
 							# and using regex replacement.
+				argumentList = []
+							# Grab the executor name
+							executor = atomic['executor']['name']
 							if 'input_arguments' in atomic.keys():
 								for argument in atomic['input_arguments'].keys():
 									try:
-										command = re.sub(r"\#{{{argName}}}".format(argName = str(argument)), str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode(), command)
+										curArgument = str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode()
 									except:
 										logging.error('Unable to encode command.')
 										raise SystemExit
-
-							# Grab the executor name
-							executor = atomic['executor']['name']
+									argumentList.append({'executor': executor, 'command': command, 'argument': curArgument })
 						else:
 							command = ''
 							executor = ''
-
-						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
-							executor = 'bash'
-						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
-							executor = 'psh'
 
 						logging.debug('Collected attack name: {}'.format(attackName))
 						logging.debug('Collected attack executor: {}'.format(executor))
 						logging.debug('Collected attack command: {}'.format(command))
 
-						# Check to see if the command has been catalogued in the CSV previously
-						if not any((line['attackID'] == attackID) and (line['command'] == command) for line in csvFile):
-							logging.debug('Collecting new YAML info.')
-
-							# Ensure we don't somehow use a duplicate UUID value
-							uuidBool = True
-
-							while(uuidBool):
-								attackUUID = uuid.uuid4()
-								if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
-										uuidBool = False
-
-							# Put the custom dictionary together that will be exported/dumped to a YAML file
-							# the 'command' is formatted as a scalar string.
-							newYAML = [{ 'id': str(attackUUID),
-								'name': displayName,
-								'description': '{} (Atomic Red Team)'.format(testDescription.strip().replace('\n', ' ').replace('  ', ' ')),
-								'tactic': tactic,
-								'technique': { 'attack_id': attackID, 'name': attackName },
-								'executors': { executor: { 'command': cmdStr(command) }}}]
-
-							logging.debug(newYAML)
-
-							# Generate New YAML
-
-							# Make sure the abilities directory exists and create it if it does not.
-							try:
-								abilityDir = os.path.join(ouptutDir, 'abilities/')
-								if not os.path.exists(abilityDir):
-									os.makedirs(abilityDir)
-									logging.debug('Ability directory created: {}'.format(abilityDir))
-								else:
-									logging.debug('Ability directory exists: {}'.format(abilityDir))
-							except:
-								logging.error('Failed to create the abilty directory.')
-								raise SystemExit
-
-							# Make sure the tactic directory exists and create it if it does not.
-							try:
-								if not os.path.exists(os.path.join(abilityDir, tactic)):
-									os.makedirs(os.path.join(abilityDir, tactic))
-									logging.debug('Tactic directory created: {}'.format(os.path.join(abilityDir, tactic)))
-								else:
-									logging.debug('Tactic directory exists: {}'.format(os.path.join(abilityDir, tactic)))
-							except:
-								logging.error('Tactic is empty?')
-								raise SystemExit
-
-							# Write the YAML file to the correct directory using the UUID as the name.
-							try:
-								with open(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID))), 'w') as newYAMLFile:
-									dump = yaml.dump(newYAML, default_style = None, default_flow_style = False, allow_unicode = True, encoding = None, sort_keys = False)
-									newYAMLFile.write(dump)
-								logging.debug('YAML file written: {}'.format(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID)))))
-							except Exception as e:
-								logging.error('Error creating YAML file.')
-								print(e)
-								raise SystemExit
-
-							# Append the newly converted ability information to the variable that will written to the CSV file
-							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'command': command }
-							csvFile.append(newLine)
-						else:
-							logging.debug('The technique already exists.')
+						for argument in argumentList
+						newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'command': command }
+						svFile.append(newLine)
 
 		# Write the content of CSV file to disk
 		with open(csvPath, 'w', newline='') as newCSVFile:
