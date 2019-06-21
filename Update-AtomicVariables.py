@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import argparse, collections, csv, logging, os, sys, re, uuid, yaml
+import argparse, collections, csv, fnmatch, logging, os, shutil, sys, re, uuid, yaml
 
 class cmdStr(str):
 	pass
@@ -90,8 +90,12 @@ def main(inputDir, outputDir, csvPath):
 		logging.error('Unable to read CSV file.')
 		raise SystemExit
 
+	# Create a fully copy of the directory first
+	shutil.rmtree(outputDir)
+	shutil.copytree(inputDir, outputDir, False)
+
 	# Step through each UUID and update the command strings
-	for curUUID in uniqueUUD:
+	for curUUID in uniqueUUID:
 		for root, dirnames, filenames in os.walk(inputDir):
 			for filename in fnmatch.filter(filenames, '{}.yml'.format(curUUID)):
 				curFile = os.path.join(root, filename)
@@ -101,21 +105,47 @@ def main(inputDir, outputDir, csvPath):
 			try:
 				yamlData = yaml.load(yamlFile, Loader=yaml.Loader)
 				logging.debug('Successfully loaded: {}.'.format(curFile))
+				logging.debug(yamlData)
 			except:
-				logging.debug('Unable to load: {}.'format(curFile))
-				raise SystemExit('Unable to load: {}.'format(curFile))
+				logging.debug('Unable to load: {}.'.format(curFile))
+				raise SystemExit('Unable to load: {}.'.format(curFile))
 
 		# Get the command that will be updated
-		for key in yamlData['executors'].keys():
-			if 'command' in yamlData[key].keys():
-				command = yamlData[key]['command']
-			else:
-				logging.error('Command value not found, exiting.')
-				raise SystemExit
+		for key in yamlData[0]['executors']:
+			for key1 in yamlData[0]['executors'][key]:
+				if key1 == 'command':
+					command = yamlData[0]['executors'][key]['command']
+					logging.debug('Command value found.')
+					logging.debug(command)
 
-		# Update the command by looping through the CSV file and applying the appropriate variables
-		for line in csvFile:
-			if 
+					# Update the command by looping through the CSV file and applying the appropriate variables
+					for line in csvFile:
+						if line['attackUUID'] == curUUID:
+							command = re.sub(r"\#{{{argName}}}".format(argName = str(line['variable'])), str(line['value']).encode('unicode-escape').decode(), command)
+
+					yamlData[0]['executors'][key]['command'] = cmdStr(command)
+					logging.debug('Updated command in YAML variable.')
+				else:
+					logging.error('Command value not found, exiting.')
+					raise SystemExit
+
+		logging.debug(yamlData)
+
+		# Write the YAML file to the correct directory using the UUID as the name.
+		newAbilityDir = os.path.join(outputDir, os.path.split(os.path.dirname(curFile))[1])
+		if not os.path.exists(newAbilityDir):
+			os.makedirs(newAbilityDir)
+
+		newFile = os.path.join(newAbilityDir, filename)
+		try:
+			with open(newFile, 'w') as newYAMLFile:
+				dump = yaml.dump(yamlData, default_style = None, default_flow_style = False, allow_unicode = True, encoding = None, sort_keys = False)
+				newYAMLFile.write(dump)
+			logging.debug('YAML file written: {}'.format(newFile))
+		except Exception as e:
+			logging.error('Error creating YAML file.')
+			print(e)
+			raise SystemExit
 
 if __name__ == "__main__":
 	# String representer for PyYAML to format the command string
@@ -127,7 +157,7 @@ if __name__ == "__main__":
 	logging.debug('Debugging logging is on.')
 
 	# Parse the command arguments and display a usage message if incorrect parmeters are provided.
-	parser = argparse.Argumentparser(description = 'Populate the variable values in the abilities folder with those provided in the supplied input CSV file.')
+	parser = argparse.ArgumentParser(description = 'Populate the variable values in the abilities folder with those provided in the supplied input CSV file.')
 	parser.add_argument("-i", "--inputdir", type=str, help='The path to the \"abilities\" folder that needs to be updated.')
 	parser.add_argument("-o", "--outputdir", type=str, help='The path to store the updated \"abilities\" folder. If no argument is provided, an \"abilities-populated\" folder will be created.')
 	parser.add_argument("-c", "--csv", type=str, help='The CSV file that will be used to update variable values.')
@@ -139,7 +169,7 @@ if __name__ == "__main__":
 		# Check for the presense of YAML files
 		if checkAbilities(args.inputdir):
 			inputDir = args.inputdir
-		else;
+		else:
 			print('The input direcotry does not contain any YAML files.')
 			raise SystemExit
 
@@ -149,16 +179,22 @@ if __name__ == "__main__":
 		else:
 			outputDir = os.path.join(os.path.split(os.path.dirname(inputDir))[0], 'abilities-updated/')
 
+		if not os.path.exists(outputDir):
+			os.makedirs(outputDir)
+			logging.debug('Output directory created: {}'.format(outputDir))
+		else:
+			logging.debug('Output directory exists: {}'.format(outputDir))
+
 		# Check for existing YAML files
 		if checkAbilities(outputDir):
 			answer = query_yes_no('The output directory already contains YAML files. If you continue, these files will be overwritten. Would you like to continue?')
-			if answer = False:
+			if answer == False:
 				print('You chose not to continue. Please double-check your work and try again if needed.')
 				raise SystemExit
 
 		# Validate the CSV file
 		if args.csv:
-			if checkCSVPath(args.csv):
+			if checkCSVFile(args.csv):
 				main(inputDir, outputDir, args.csv)
 			else:
 				parser.print_help(sys.stderr)

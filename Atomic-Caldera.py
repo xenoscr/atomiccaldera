@@ -198,6 +198,8 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							executor = 'bash'
 						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
 							executor = 'psh'
+						else:
+							continue
 
 						logging.debug('Collected attack name: {}'.format(attackName))
 						logging.debug('Collected attack executor: {}'.format(executor))
@@ -289,7 +291,7 @@ if __name__ == "__main__":
 	yaml.add_representer(cmdStr, cmd_presenter)
 
 	# Setup Debugging messages
-	logLvl = logging.ERROR
+	logLvl = logging.DEBUG
 	logging.basicConfig(level=logLvl, format='%(asctime)s - %(levelname)s - %(message)s')
 	logging.debug('Debugging logging is on.')
 
