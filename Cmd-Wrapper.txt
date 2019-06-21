@@ -1,0 +1,28 @@
+$signature = @'
+	[DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+	[DllImport("user32.dll")] public static extern int SetForegroundWindow(IntPtr hWnd);
+'@
+$type = Add-Type -MemberDefinition $signature -Name WindowAPI -PassThru
+Add-Type -AssemblyName microsoft.VisualBasic
+Add-Type -AssemblyName System.Windows.Forms
+
+Function Show-Process($Process) {
+	Start-Sleep 3
+	$hWnd = $Process.MainWindowHandle
+	$type::ShowWindowAsync($hWnd, 4)
+	$type::SetForegroundWindow($hWnd)
+	Start-Sleep 3
+}
+
+$commands = @"
+{command}
+exit
+"@ -split "`n"
+
+$cmdWindow = Start-Process -WindowStyle Normal -FilePath c:\windows\system32\cmd.exe -PassThru
+
+ForEach ($line in $commands) {
+	$cmd = $line -replace "%","{%}"
+	Show-Process($cmdWindow)
+	[System.Windows.Forms.SendKeys]::SendWait(“$cmd{Enter}”)
+}
