@@ -197,9 +197,16 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
 							executor = 'bash'
 						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
+							if (executor.lower() == 'command_prompt'):
+								with open('Cmd-Wrapper.txt', encoding='utf-8', mode='r') as cmdFile:
+									cmdWrap = cmdFile.read()
+								reCmd = re.sub(r"\#{command}", command, cmdWrap)
+								command = reCmd
 							executor = 'psh'
 						else:
 							continue
+
+						print(type(command))
 
 						logging.debug('Collected attack name: {}'.format(attackName))
 						logging.debug('Collected attack executor: {}'.format(executor))

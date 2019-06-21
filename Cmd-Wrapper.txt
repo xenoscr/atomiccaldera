@@ -15,14 +15,18 @@ Function Show-Process($Process) {
 }
 
 $commands = @"
-{command}
-exit
+#{command}
 "@ -split "`n"
 
 $cmdWindow = Start-Process -WindowStyle Normal -FilePath c:\windows\system32\cmd.exe -PassThru
 
 ForEach ($line in $commands) {
-	$cmd = $line -replace "%","{%}"
-	Show-Process($cmdWindow)
-	[System.Windows.Forms.SendKeys]::SendWait(“$cmd{Enter}”)
+	If ($line -ne "") {
+		$cmd = $line -replace "%","{%}"
+		Show-Process($cmdWindow)
+		[System.Windows.Forms.SendKeys]::SendWait("$cmd{Enter}")
+	}
 }
+Show-Process($cmdWindow)
+[System.Windows.Forms.SendKeys]::SendWait("^{a}^{c}exit{Enter}")
+Get-Clipboard
