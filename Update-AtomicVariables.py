@@ -1,5 +1,37 @@
 #!/usr/bin/python3
 
+###############################################################################
+# Name: Update-AtomicVariables.py
+# Author: Conor Richard (@xenosCR)
+#
+# Description: This script is used to populate the variable values in the
+# Atomic Red Team tests after they have been converted to Caldera formated
+# YML files. The purpose of this script is to make it easier to customize the
+# converted tests to run on various machines and networks. This can be 
+# accomplished by editing the values in the CSV file (atomic-variables.csv by
+# default) to match the computers, network, etc. that you are performing your
+# testing with.
+#
+# This script will loop through all of the tests detailed in the CSV file and
+# update each variable value in the associated YML files and save the updated
+# YML files in a new folder.
+#
+# Known Issue(s):
+# None at this time.
+#
+# Requirements:
+# 1. Must have use the Atomic-Caldera.py script to convert the Atomic Red
+#    Team test to Caldara tests.
+# 2. Must first update the CSV file that contains your variables to match
+#    your testing environment.
+# 3. The following Python libraries are required:
+#    a. yaml
+#
+# Credits:
+# Red Canary's Atomic Red Team - https://github.com/redcanaryco/atomic-red-team
+# MITRE's Caldera - https://github.com/mitre/caldera
+###############################################################################
+
 import argparse, collections, csv, fnmatch, logging, os, shutil, sys, re, uuid, yaml
 
 class cmdStr(str):
@@ -28,8 +60,6 @@ def checkCSVFile(csvPath):
 			with open(csvPath, 'r') as csvFile:
 				line = csvFile.readline()
 		except:
-			parser.print_help(sys.stderr)
-			print('\n\n')
 			logging.error('The provided path to the catalog CSV file is invalid or the CSV file is corrupted.')
 			raise SystemExit
 
