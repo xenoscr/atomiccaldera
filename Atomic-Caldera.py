@@ -353,7 +353,7 @@ if __name__ == "__main__":
 	yaml.add_representer(cmdStr, cmd_presenter)
 
 	# Setup Debugging messages
-	logLvl = logging.DEBUG
+	logLvl = logging.ERROR
 	logging.basicConfig(level=logLvl, format='%(asctime)s - %(levelname)s - %(message)s')
 	logging.debug('Debugging logging is on.')
 
