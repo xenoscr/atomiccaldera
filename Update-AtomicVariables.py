@@ -130,6 +130,7 @@ def main(inputDir, outputDir, csvPath):
 			for filename in fnmatch.filter(filenames, '{}.yml'.format(curUUID)):
 				curFile = os.path.join(root, filename)
 
+		print("Processing: {}".format(curFile))
 		# Open and parse the YAML file
 		with open(curFile, 'r') as yamlFile:
 			try:

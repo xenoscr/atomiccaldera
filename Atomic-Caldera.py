@@ -261,7 +261,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 						else:
 							continue
 
-						print(type(command))
+						logging.debug('The command variable type is: {}'.format(type(command)))
 
 						logging.debug('Collected attack name: {}'.format(attackName))
 						logging.debug('Collected attack executor: {}'.format(executor))
