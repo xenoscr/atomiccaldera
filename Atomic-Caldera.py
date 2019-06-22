@@ -58,6 +58,61 @@ def getMITREPhase(fs, attackID):
 	else:
 		return None
 
+def checkCSVPath(csvPath):
+	if os.path.exists(csvPath):
+		try:
+			with open(csvPath, 'r') as csvFile:
+				line = csvFile.readline()
+		except:
+			logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
+			return False
+		if not line == 'attackUUID,attackID,command\n':
+			logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
+			return False
+		else:
+			logging.debug('The provided path to the CSV file has been validated: {}'.format(csvPath))
+			return True
+	else:
+		logging.debug('The catalog CSV fle does not exist, it will be created.')
+		return True
+
+def checkCTIPath(ctiPath):
+	if not (os.path.exists(ctiPath) and os.path.exists("{ctiPath}/enterprise-attack/".format(ctiPath = ctiPath))):
+		logging.error('The provided path to the MITRE CTI database is incorrect or corrupt.')
+		return False
+	else:
+		logging.debug('The provided CTI path is: {}'.format(ctiPath))
+		return True
+
+def checkOutputDir(fileoutdir):
+	if os.path.exists(fileoutdir):
+		logging.debug('Checking fileoutdir.')
+		abilityDir = os.path.join(fileoutdir, 'abilities/')
+		if os.path.exists(abilityDir):
+			logging.debug('Checking for existing YAML files in: {}.'.format(abilityDir))
+			fileCount = 0
+			for root, dirs, files in os.walk(abilityDir):
+				for procFile in files:
+					fullFile = os.path.join(root, procFile)
+					if os.path.splitext(fullFile)[-1].lower() == '.yml':
+						fileCount += 1
+			if fileCount > 0:
+				answer = query_yes_no('The directory already contains YAML files, please be sure you are not going to duplicate files. Would you like to continue?')
+				if answer == True:
+					outputDir = fileoutdir
+				else:
+					print('You chose not to coninue. Please double-check your work and try again if needed.')
+					raise SystemExit
+			else:
+				outputDir = fileoutdir
+		else:
+			logging.debug('No abilities directory found in provided output path')
+			outputDir = fileoutdir
+	else:
+		logging.debug('The provided output directory was not provided, using current working directory.\n')
+		outputDir = os.getcwd()
+	return outputDir
+
 # Taken from https://stackoverflow.com/questions/3041986/apt-command-line-interface-like-yes-no-input
 # to save time
 def query_yes_no(question, default="no"):
@@ -322,42 +377,6 @@ if __name__ == "__main__":
 	else:
 		varCsvPath = os.path.join(os.getcwd(), 'atomic-variables.csv')
 
-	if os.path.exists(csvPath):
-		try:
-			with open(csvPath, 'r') as csvFile:
-				line = csvFile.readline()
-		except:
-			parser.print_help(sys.stderr)
-			print('\n\n')
-			logging.error('The provided path to the catalog CSV file is invalid or the CSV file is corrupted.')
-			raise SystemExit
-
-		if not line == 'attackUUID,attackID,command\n':
-			parser.print_help(sys.stderr)
-			print('\n\n')
-			logging.error('The provided path to the catalog CSV file is invalid or the CSV file is corrupted.')
-			raise SystemExit
-	else:
-		logging.debug('The catalog CSV fle does not exist, it will be created.')
-
-	if os.path.exists(varCsvPath):
-		try:
-			with open(varCsvPath, 'r') as varCsvFile:
-				line = varCsvFile.readline()
-		except:
-			parser.print_help(sys.stderr)
-			print('\n\n')
-			logging.error('The provided path to the variable CSV file is invalid or the CSV file is corrupted.')
-			raise SystemExit
-
-		if not line == 'attackUUID,attackID,executor,variable,value\n':
-			parser.print_help(sys.stderr)
-			print('\n\n')
-			logging.error('The provided path to the variable CSV file is invalid or the CSV file is corrupted.')
-			raise SystemExit
-	else:
-		logging.debug('The variable CSV fle does not exist, it will be created.')
-
 	# Get the MITRE CTI database location from the provided path or default location
 	if args.cti:
 		ctiPath = args.cti
@@ -365,52 +384,27 @@ if __name__ == "__main__":
 		curPath = os.path.dirname(os.path.realpath(__file__))
 		ctiPath = os.path.join(curPath, 'cti/')
 
-	if not (os.path.exists(ctiPath) and os.path.exists("{ctiPath}/enterprise-attack/".format(ctiPath = ctiPath))):
-		parser.print_help(sys.stderr)
-		print('\n\n')
-		logging.error('The provided path to the MITRE CTI database is incorrect or corrupt.')
-		raise SystemExit
-
-	logging.debug('The provided CTI path is: {}'.format(ctiPath))
-	
 	# Check the output directory
 	if args.fileoutdir:
-		if os.path.exists(args.fileoutdir):
-			logging.debug('Checking fileoutdir.')
-			abilityDir = os.path.join(args.fileoutdir, 'abilities/')
-			if os.path.exists(abilityDir):
-				logging.debug('Checking for existing YAML files in: {}.'.format(abilityDir))
-				fileCount = 0
-				for root, dirs, files in os.walk(abilityDir):
-					for procFile in files:
-						fullFile = os.path.join(root, procFile)
-						if os.path.splitext(fullFile)[-1].lower() == '.yml':
-							fileCount += 1
-				if fileCount > 0:
-					answer = query_yes_no('The directory already contains YAML files, please be sure you are not going to duplicate files. Would you like to continue?')
-					if answer == True:
-						outputDir = args.fileoutdir
-					else:
-						print('You chose not to coninue. Please double-check your work and try again if needed.')
-						raise SystemExit
-				else:
-					outputDir = args.fileoutdir
-			else:
-				logging.debug('No abilities directory found in provided output path')
-				outputDir = args.fileoutdir
-		else:
-			parser.print_help(sys.stderr)
-			print('\n\n')
-			logging.debug('The provided output directory is invalid\n')
-			raise SystemExit
+		outputDir = checkOutputDir(args.fileoutdir)
 	else:
-		logging.debug('The provided output directory was not provided, using current working directory.\n')
+		logging.debug('No output directory was provided, using the current directory.')
 		outputDir = os.getcwd()
+
+	csvPathCheck = checkCSVPath(csvPath)
+	varCsvPathCheck = checkCSVPath(varCsvPath)
+	ctiPathCheck = checkCTIPath(ctiPath)
 
 	# Get the Red Canary Atomic Red Team repository location
 	if args.inputdir:
 		if os.path.exists(args.inputdir) and os.path.exists("{argPath}/T1002".format(argPath = args.inputdir)):
-			main(args.inputdir, outputDir, csvPath, varCsvPath, ctiPath)
+			if (csvPathCheck == True and varCsvPathCheck == True and ctiPathCheck == True):
+				main(args.inputdir, outputDir, csvPath, varCsvPath, ctiPath)
+			else:
+				parser.print_help(sys.stderr)
+				print('\n\n')
+				logging.error('The provided arguments could not be validated.\n')
+				raise SystemExit
 		else:
 			parser.print_help(sys.stderr)
 			print('\n\n')
