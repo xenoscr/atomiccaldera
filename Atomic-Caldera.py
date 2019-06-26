@@ -231,7 +231,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							# Grab the executor name
 							executor = atomic['executor']['name']
 							# grab the command and fix incorrect encoding of '\a' character sequence.
-							command = r.sub(r'x07', r'a', repr(atomic['executor']['command']))
+							command = re.sub(r'x07', r'a', repr(atomic['executor']['command']))
 							# Initialize a new list to collect varialbe/argument values
 							varList = []
 							# If input arguments exist, replace them by looping through each
