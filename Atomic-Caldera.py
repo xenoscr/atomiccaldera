@@ -254,10 +254,10 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							executor = 'bash'
 						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
 							if (executor.lower() == 'command_prompt'):
-								with open('Cmd-Wrapper.txt', encoding='utf-8', mode='r') as cmdFile:
+								with open('Cmd-Wrapper.txt', mode='r') as cmdFile:
 									cmdWrap = cmdFile.read()
-								reCmd = re.sub(r"\#{command}", command, cmdWrap)
-								command = reCmd
+								reCmd = re.sub("\#{command}", command, cmdWrap)
+								command = str(reCmd)
 							executor = 'psh'
 						else:
 							continue
