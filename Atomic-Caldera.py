@@ -195,6 +195,9 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 						logging.debug('Unable to load: {}.'.format(fullFile))
 						raise SystemExit('Unable to load: {}.'.format(fullFile))
 
+				# Fix YAML encoding problem, convert '\x07' back to '\a'
+				yamlData = re.sub(r'x07', r'a', repr(yamlData))
+				
 				# Get the description
 				if 'display_name' in yamlData.keys():
 					displayName = yamlData['display_name']
