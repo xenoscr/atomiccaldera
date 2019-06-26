@@ -194,9 +194,6 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 					except:
 						logging.debug('Unable to load: {}.'.format(fullFile))
 						raise SystemExit('Unable to load: {}.'.format(fullFile))
-
-				# Fix YAML encoding problem, convert '\x07' back to '\a'
-				yamlData = re.sub(r'x07', r'a', repr(yamlData))
 				
 				# Get the description
 				if 'display_name' in yamlData.keys():
@@ -233,8 +230,8 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 										uuidBool = False
 							# Grab the executor name
 							executor = atomic['executor']['name']
-							# grab the command
-							command = atomic['executor']['command']
+							# grab the command and fix incorrect encoding of '\a' character sequence.
+							command = r.sub(r'x07', r'a', repr(atomic['executor']['command']))
 							# Initialize a new list to collect varialbe/argument values
 							varList = []
 							# If input arguments exist, replace them by looping through each
@@ -243,7 +240,8 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 								for argument in atomic['input_arguments'].keys():
 									try:
 										#curVar = str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode()
-										curVar = str(atomic['input_arguments'][argument]['default'])
+										# Fix incorrect encoding of '\a' character sequence
+										curVar = re.sub(r'x07', r'a', repr(atomic['input_arguments'][argument]['default']))
 									except:
 										logging.error('Unable to encode command.')
 										raise SystemExit
