@@ -250,7 +250,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							command = ''
 							executor = ''
 
-						origCommand = command
+						origCommand = str(command)
 						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
 							executor = 'bash'
 						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
@@ -321,7 +321,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 								raise SystemExit
 
 							# Append the newly converted ability information to the variable that will written to the CSV file
-							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'origCommand': origCommand.encode('utf-8').decode(), 'command': command }
+							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'origCommand': origCommand, 'command': command }
 							csvFile.append(newLine)
 
 							# Append the variables to the variable CSV file
