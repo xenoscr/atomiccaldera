@@ -250,15 +250,18 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							command = ''
 							executor = ''
 
-						origCommand = str(command)
+						origCommand = command.replace('\\n','\n')
 						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
 							executor = 'bash'
+							command = command.replace('\\n','\n')
 						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
 							if (executor.lower() == 'command_prompt'):
 								with open('Cmd-Wrapper.txt', mode='r') as cmdFile:
 									cmdWrap = cmdFile.read()
 								reCmd = re.sub("\#{command}", command, cmdWrap)
 								command = str(reCmd)
+							else:
+								command = command.replace('\\n','\n')
 							executor = 'psh'
 						else:
 							continue
