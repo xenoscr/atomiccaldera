@@ -66,7 +66,7 @@ def checkCSVPath(csvPath):
 		except:
 			logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
 			return False
-		if not line == 'attackUUID,attackID,command\n':
+		if not line == 'attackUUID,attackID,origCommand,command\n':
 			logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
 			return False
 		else:
@@ -321,7 +321,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 								raise SystemExit
 
 							# Append the newly converted ability information to the variable that will written to the CSV file
-							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'origCommand': origCommand, 'command': command }
+							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'origCommand': origCommand.encode('utf-8'), 'command': command }
 							csvFile.append(newLine)
 
 							# Append the variables to the variable CSV file
