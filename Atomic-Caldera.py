@@ -232,7 +232,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							executor = atomic['executor']['name']
 							# grab the command and fix incorrect encoding of '\a' character sequence.
 							command = re.sub(r'x07', r'a', repr(atomic['executor']['command']))
-							command = command.encode('utf-9').decode('unicode_escape')
+							command = command.encode('utf-8').decode('unicode_escape')
 							if command[0] == '\'':
 								command = command.strip('\'')
 							elif command[0] == '\"':
