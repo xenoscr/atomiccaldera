@@ -250,6 +250,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							command = ''
 							executor = ''
 
+						origCommand = command
 						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
 							executor = 'bash'
 						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
@@ -269,7 +270,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 						logging.debug('Collected attack command: {}'.format(command))
 
 						# Check to see if the command has been catalogued in the CSV previously
-						if not any((line['attackID'] == attackID) and (line['command'] == command) for line in csvFile):
+						if not any((line['attackID'] == attackID) and (line['origCommand'] == origCommand) for line in csvFile):
 							logging.debug('Collecting new YAML info.')
 
 							# Put the custom dictionary together that will be exported/dumped to a YAML file
@@ -320,7 +321,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 								raise SystemExit
 
 							# Append the newly converted ability information to the variable that will written to the CSV file
-							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'command': command }
+							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'origCommand': origCommand, 'command': command }
 							csvFile.append(newLine)
 
 							# Append the variables to the variable CSV file
@@ -333,7 +334,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 
 		# Write the content of CSV file to disk
 		with open(csvPath, 'w', newline='') as newCSVFile:
-			fieldNames = ['attackUUID', 'attackID', 'command']
+			fieldNames = ['attackUUID', 'attackID', 'origCommand', 'command']
 			writer = csv.DictWriter(newCSVFile, fieldnames = fieldNames)
 
 			writer.writeheader()
