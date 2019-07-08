@@ -232,6 +232,11 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							executor = atomic['executor']['name']
 							# grab the command and fix incorrect encoding of '\a' character sequence.
 							command = re.sub(r'x07', r'a', repr(atomic['executor']['command']))
+							command = command.encode('utf-9').decode('unicode_escape')
+							if command[0] == '\'':
+								command = command.strip('\'')
+							elif command[0] == '\"':
+								command = command.strip('\"')
 							# Initialize a new list to collect varialbe/argument values
 							varList = []
 							# If input arguments exist, replace them by looping through each
@@ -250,7 +255,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 							command = ''
 							executor = ''
 
-						origCommand = command.replace('\\n','\n')
+						origCommand = command
 						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
 							executor = 'bash'
 							command = command.replace('\\n','\n')
