@@ -58,7 +58,7 @@ def getMITREPhase(fs, attackID):
 	else:
 		return None
 
-def checkCSVPath(csvPath):
+def checkCSVPath(csvPath, csvType):
 	if os.path.exists(csvPath):
 		try:
 			with open(csvPath, 'r') as csvFile:
@@ -66,12 +66,21 @@ def checkCSVPath(csvPath):
 		except:
 			logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
 			return False
-		if not line == 'attackUUID,attackID,origCommand,command\n':
-			logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
-			return False
-		else:
-			logging.debug('The provided path to the CSV file has been validated: {}'.format(csvPath))
-			return True
+		if csvType == 'catalog':
+			if not line == 'attackUUID,attackID,executor,origCommand,command\n':
+				logging.debug('The provided path to the catalog CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
+				return False
+			else:
+				logging.debug('The provided path to the CSV file has been validated: {}'.format(csvPath))
+				return True
+		elif csvType == 'vars':
+			if not line == 'attackUUID,attackID,platform,executor,variable,value\n':
+				logging.debug('The provided path to the vars CSV file is invalid or the CSV file is corrupted: {}'.format(csvPath))
+				return False
+			else:
+				logging.debug('The provided path to the vars CSV file has been validated: {}'.format(csvPath))
+				return True
+			
 	else:
 		logging.debug('The catalog CSV fle does not exist, it will be created.')
 		return True
@@ -216,133 +225,140 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 				if 'atomic_tests' in yamlData.keys():
 					# Loop through each Atomic test (Atomic Red Team lists multiple tests per YAML file)
 					for atomic in yamlData['atomic_tests']:
-						# Grab the attack name
-						attackName = atomic['name']
-						# Grab the attack description
-						testDescription = atomic['description']
-						# Some tests do not have a 'command' key, skip it if it does not.
-						if 'command' in atomic['executor'].keys():
-							# Ensure we don't somehow use a duplicate UUID value
-							uuidBool = True
-							while(uuidBool):
-								attackUUID = uuid.uuid4()
-								if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
-										uuidBool = False
-							# Grab the executor name
-							executor = atomic['executor']['name']
-							# grab the command and fix incorrect encoding of '\a' character sequence.
-							command = re.sub(r'x07', r'a', repr(atomic['executor']['command']))
-							command = command.encode('utf-8').decode('unicode_escape')
-							if command[0] == '\'':
-								command = command.strip('\'')
-							elif command[0] == '\"':
-								command = command.strip('\"')
-							# Initialize a new list to collect varialbe/argument values
-							varList = []
-							# If input arguments exist, replace them by looping through each
-							# and using regex replacement.
-							if 'input_arguments' in atomic.keys():
-								for argument in atomic['input_arguments'].keys():
+						# Handle the 3 supported Caldera ability types: windows, linux, darwin
+						for platform in atomic['supported_platforms']:
+							if platform.lower() in ['windows', 'linux', 'macos']:
+								# Grab the attack name
+								attackName = atomic['name']
+								# Grab the attack description
+								testDescription = atomic['description']
+								# Some tests do not have a 'command' key, skip it if it does not.
+								if 'command' in atomic['executor'].keys():
+									# Ensure we don't somehow use a duplicate UUID value
+									uuidBool = True
+									while(uuidBool):
+										attackUUID = uuid.uuid4()
+										if not any(line['attackUUID'] == str(attackUUID) for line in csvFile):
+												uuidBool = False
+									# Grab the executor name
+									executor = atomic['executor']['name']
+									# grab the command and fix incorrect encoding of '\a' character sequence.
+									command = re.sub(r'x07', r'a', repr(atomic['executor']['command']))
+									command = command.encode('utf-8').decode('unicode_escape')
+									if command[0] == '\'':
+										command = command.strip('\'')
+									elif command[0] == '\"':
+										command = command.strip('\"')
+									# Initialize a new list to collect varialbe/argument values
+									varList = []
+									# If input arguments exist, replace them by looping through each
+									# and using regex replacement.
+									if 'input_arguments' in atomic.keys():
+										for argument in atomic['input_arguments'].keys():
+											try:
+												#curVar = str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode()
+												# Fix incorrect encoding of '\a' character sequence
+												curVar = re.sub(r'x07', r'a', repr(atomic['input_arguments'][argument]['default']))
+											except:
+												logging.error('Unable to encode command.')
+												raise SystemExit
+											varList.append({'attackUUID': attackUUID, 'attackID': attackID, 'platform': platform.lower(), 'executor': executor, 'variable': argument, 'value': curVar})
+								else:
+									command = ''
+									executor = ''
+
+								origCommand = command
+								if (executor.lower() == 'sh' or executor.lower() == 'bash'):
+									if platform.lower() == 'linux':
+										executor = 'linux'
+									elif platform.lower() == 'macos':
+										executor = 'darwin'
+									command = command.replace('\\n','\n')
+								elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
+									if (executor.lower() == 'command_prompt'):
+										with open('Cmd-Wrapper.txt', mode='r') as cmdFile:
+											cmdWrap = cmdFile.read()
+										reCmd = re.sub("\#{command}", command, cmdWrap)
+										command = str(reCmd)
+									else:
+										command = command.replace('\\n','\n')
+									executor = 'windows'
+								else:
+									continue
+
+								logging.debug('The command variable type is: {}'.format(type(command)))
+
+								logging.debug('Collected attack name: {}'.format(attackName))
+								logging.debug('Collected attack executor: {}'.format(executor))
+								logging.debug('Collected attack command: {}'.format(command))
+
+								# Check to see if the command has been catalogued in the CSV previously
+								if not any((line['attackID'] == attackID) and (line['origCommand'] == origCommand) and (line['executor'] == executor) for line in csvFile):
+									logging.debug('Collecting new YAML info.')
+
+									# Put the custom dictionary together that will be exported/dumped to a YAML file
+									# the 'command' is formatted as a scalar string.
+									newYAML = [{ 'id': str(attackUUID),
+										'name': displayName,
+										'description': '{} (Atomic Red Team)'.format(testDescription.strip().replace('\n', ' ').replace('  ', ' ')),
+										'tactic': tactic,
+										'technique': { 'attack_id': attackID, 'name': attackName },
+										'executors': { executor: { 'command': cmdStr(command) }}}]
+
+									logging.debug(newYAML)
+
+									# Generate New YAML
+
+									# Make sure the abilities directory exists and create it if it does not.
 									try:
-										#curVar = str(atomic['input_arguments'][argument]['default']).encode('unicode-escape').decode()
-										# Fix incorrect encoding of '\a' character sequence
-										curVar = re.sub(r'x07', r'a', repr(atomic['input_arguments'][argument]['default']))
+										abilityDir = os.path.join(ouptutDir, 'abilities/')
+										if not os.path.exists(abilityDir):
+											os.makedirs(abilityDir)
+											logging.debug('Ability directory created: {}'.format(abilityDir))
+										else:
+											logging.debug('Ability directory exists: {}'.format(abilityDir))
 									except:
-										logging.error('Unable to encode command.')
+										logging.error('Failed to create the abilty directory.')
 										raise SystemExit
-									varList.append({'attackUUID': attackUUID, 'attackID': attackID, 'executor': executor, 'variable': argument, 'value': curVar})
-						else:
-							command = ''
-							executor = ''
 
-						origCommand = command
-						if (executor.lower() == 'sh' or executor.lower() == 'bash'):
-							executor = 'bash'
-							command = command.replace('\\n','\n')
-						elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'): 
-							if (executor.lower() == 'command_prompt'):
-								with open('Cmd-Wrapper.txt', mode='r') as cmdFile:
-									cmdWrap = cmdFile.read()
-								reCmd = re.sub("\#{command}", command, cmdWrap)
-								command = str(reCmd)
-							else:
-								command = command.replace('\\n','\n')
-							executor = 'psh'
-						else:
-							continue
+									# Make sure the tactic directory exists and create it if it does not.
+									try:
+										if not os.path.exists(os.path.join(abilityDir, tactic)):
+											os.makedirs(os.path.join(abilityDir, tactic))
+											logging.debug('Tactic directory created: {}'.format(os.path.join(abilityDir, tactic)))
+										else:
+											logging.debug('Tactic directory exists: {}'.format(os.path.join(abilityDir, tactic)))
+									except:
+										logging.error('Tactic is empty?')
+										raise SystemExit
 
-						logging.debug('The command variable type is: {}'.format(type(command)))
+									# Write the YAML file to the correct directory using the UUID as the name.
+									try:
+										with open(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID))), 'w') as newYAMLFile:
+											dump = yaml.dump(newYAML, default_style = None, default_flow_style = False, allow_unicode = True, encoding = None, sort_keys = False)
+											newYAMLFile.write(dump)
+										logging.debug('YAML file written: {}'.format(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID)))))
+									except Exception as e:
+										logging.error('Error creating YAML file.')
+										print(e)
+										raise SystemExit
 
-						logging.debug('Collected attack name: {}'.format(attackName))
-						logging.debug('Collected attack executor: {}'.format(executor))
-						logging.debug('Collected attack command: {}'.format(command))
+									# Append the newly converted ability information to the variable that will written to the CSV file
+									newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'executor': executor, 'origCommand': origCommand, 'command': command }
+									csvFile.append(newLine)
 
-						# Check to see if the command has been catalogued in the CSV previously
-						if not any((line['attackID'] == attackID) and (line['origCommand'] == origCommand) for line in csvFile):
-							logging.debug('Collecting new YAML info.')
-
-							# Put the custom dictionary together that will be exported/dumped to a YAML file
-							# the 'command' is formatted as a scalar string.
-							newYAML = [{ 'id': str(attackUUID),
-								'name': displayName,
-								'description': '{} (Atomic Red Team)'.format(testDescription.strip().replace('\n', ' ').replace('  ', ' ')),
-								'tactic': tactic,
-								'technique': { 'attack_id': attackID, 'name': attackName },
-								'executors': { executor: { 'command': cmdStr(command) }}}]
-
-							logging.debug(newYAML)
-
-							# Generate New YAML
-
-							# Make sure the abilities directory exists and create it if it does not.
-							try:
-								abilityDir = os.path.join(ouptutDir, 'abilities/')
-								if not os.path.exists(abilityDir):
-									os.makedirs(abilityDir)
-									logging.debug('Ability directory created: {}'.format(abilityDir))
+									# Append the variables to the variable CSV file
+									if len(varList) != 0:
+										for variable in varList:
+											if not any((line['attackID'] == variable['attackID']) and (line['executor'] == variable['executor']) and (line['variable'] == variable['variable']) for line in varCsvFile):
+												newLine = { 'attackUUID': variable['attackUUID'], 'attackID': variable['attackID'], 'executor': variable['executor'], 'variable': variable['variable'], 'value': variable['value'] }
+												varCsvFile.append(newLine)
 								else:
-									logging.debug('Ability directory exists: {}'.format(abilityDir))
-							except:
-								logging.error('Failed to create the abilty directory.')
-								raise SystemExit
-
-							# Make sure the tactic directory exists and create it if it does not.
-							try:
-								if not os.path.exists(os.path.join(abilityDir, tactic)):
-									os.makedirs(os.path.join(abilityDir, tactic))
-									logging.debug('Tactic directory created: {}'.format(os.path.join(abilityDir, tactic)))
-								else:
-									logging.debug('Tactic directory exists: {}'.format(os.path.join(abilityDir, tactic)))
-							except:
-								logging.error('Tactic is empty?')
-								raise SystemExit
-
-							# Write the YAML file to the correct directory using the UUID as the name.
-							try:
-								with open(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID))), 'w') as newYAMLFile:
-									dump = yaml.dump(newYAML, default_style = None, default_flow_style = False, allow_unicode = True, encoding = None, sort_keys = False)
-									newYAMLFile.write(dump)
-								logging.debug('YAML file written: {}'.format(os.path.join(abilityDir, tactic, '{}.yml'.format(str(attackUUID)))))
-							except Exception as e:
-								logging.error('Error creating YAML file.')
-								print(e)
-								raise SystemExit
-
-							# Append the newly converted ability information to the variable that will written to the CSV file
-							newLine = { 'attackUUID': attackUUID, 'attackID': attackID, 'origCommand': origCommand, 'command': command }
-							csvFile.append(newLine)
-
-							# Append the variables to the variable CSV file
-							if len(varList) != 0:
-								for variable in varList:
-									newLine = { 'attackUUID': variable['attackUUID'], 'attackID': variable['attackID'], 'executor': variable['executor'], 'variable': variable['variable'], 'value': variable['value'] }
-									varCsvFile.append(newLine)
-						else:
-							logging.debug('The technique already exists.')
+									logging.debug('The technique already exists.')
 
 		# Write the content of CSV file to disk
 		with open(csvPath, 'w', newline='') as newCSVFile:
-			fieldNames = ['attackUUID', 'attackID', 'origCommand', 'command']
+			fieldNames = ['attackUUID', 'attackID', 'executor', 'origCommand', 'command']
 			writer = csv.DictWriter(newCSVFile, fieldnames = fieldNames)
 
 			writer.writeheader()
@@ -351,7 +367,7 @@ def main(inputDir, ouptutDir, csvPath, varCsvPath, ctiPath):
 
 		# Write the content of variable CSV file to disk
 		with open(varCsvPath, 'w', newline='') as newVarCSVFile:
-			fieldNames = ['attackUUID', 'attackID', 'executor', 'variable', 'value']
+			fieldNames = ['attackUUID', 'attackID', 'platform', 'executor', 'variable', 'value']
 			writer = csv.DictWriter(newVarCSVFile, fieldnames = fieldNames)
 
 			writer.writeheader()
@@ -401,8 +417,8 @@ if __name__ == "__main__":
 		logging.debug('No output directory was provided, using the current directory.')
 		outputDir = os.getcwd()
 
-	csvPathCheck = checkCSVPath(csvPath)
-	varCsvPathCheck = checkCSVPath(varCsvPath)
+	csvPathCheck = checkCSVPath(csvPath, 'catalog')
+	varCsvPathCheck = checkCSVPath(varCsvPath, 'vars')
 	ctiPathCheck = checkCTIPath(ctiPath)
 
 	# Get the Red Canary Atomic Red Team repository location
