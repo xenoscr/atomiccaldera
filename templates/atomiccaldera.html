@@ -1,0 +1,23 @@
+<html>
+<head>
+  <title>Atomic-Caldera | Dashboard</title>
+  <link rel="shortcut icon" type="image/png" href="/gui/img/favicon.png"/>
+  <link rel="stylesheet" href="/gui/css/shared.css">
+  <link rel="stylesheet" href="/gui/css/navbar.css">
+</head>
+<body>
+    <div class="topnav">
+      <a href="/">Home</a>
+      <a class="active" href="/plugin/atomiccaldera/gui">AtomicCaldera</a>
+      <div class="topnav-right">
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+    <div>
+		{% for a in abilities %}
+            <pre style="color:white">{{ a }}</pre>
+            <hr>
+        {% endfor %}
+    </div>
+</body>
+</html>
