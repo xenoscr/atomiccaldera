@@ -1,47 +1,16 @@
 #!/usr/bin/python
 
 import asyncio, os
-from app.database.relational import Sql
-
-# The following class was shamelessly ripped from the core MITRE Caldera core_dao.py file.
-# Credits to MITRE and the original authors.
-class CoreDao:
-
-	def __init__(self, database, schema):
-		self.db = Sql(database)
-		self.db.build(schema)
-
-	async def build(self, schema):
-		await self.db.build(schema)
-
-	async def get(self, table, criteria=None):
-		return await self.db.get(table, criteria)
-
-	async def unique(self, column, table):
-		return await self.db.unique(column, table)
-
-	async def create(self, table, data):
-		return await self.db.create(table, data)
-
-	async def delete(self, table, data):
-		return await self.db.delete(table, data)
-
-	async def update(self, table, key, value, data):
-		await self.db.update(table, key, value, data)
-
-	async def get_in(self, table, field, elements):
-		return await self.db.get_in(table, field, elements)
-
-	async def raw_select(self, sql):
-		return await self.db.raw_select(sql)
-
-	async def raw_update(self, sql):
-		return await self.db.raw_update(sql)
 
 class ACDatabase:
-	def __init__(self, dao):
+	def __init__(self, dao, utility_svc):
 		self.dao = dao
-		self.dao.build(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../conf/ac.sql'))
+		self.utility_svc = utility_svc
+		self.log = utility_svc.create_logger('ac_data_svc')
+
+	async def build_db(self, schema):
+		with open(schema) as schema:
+			await self.dao.build(schema.read())
 
 	async def create_art_ability(self, ability):
 		await self.dao.create('art_ability', ability)
