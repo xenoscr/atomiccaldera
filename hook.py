@@ -8,3 +8,4 @@ async def initialize(app, services):
 	ac_api = AtomicCaldera(services)
 	data_svc = services.get('data_svc')
 	app.router.add_route('GET', '/plugin/atomiccaldera/gui', ac_api.landing)
+	app.router.add_route('*', '/plugin/atomiccaldera/rest', ac_api.rest_api)
