@@ -4,6 +4,11 @@
   <link rel="shortcut icon" type="image/png" href="/gui/img/favicon.png"/>
   <link rel="stylesheet" href="/gui/css/shared.css">
   <link rel="stylesheet" href="/gui/css/navbar.css">
+  <link rel="stylesheet" href="/gui/jquery/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="/gui/css/tabs.css">
+  <link rel="stylesheet" href="/chain/css/modal.css">
+  <link rel="stylesheet" href="/chain/css/basic.css">
+  <link rel="stylesheet" href="/chain/css/timeline.css">
 </head>
 <body>
     <div class="topnav">
@@ -14,10 +19,105 @@
       </div>
     </div>
     <div>
-		{% for a in abilities %}
+		<div id="atomic-blocks" class="row-canvas">
+			<center>
+				<!-- buttons --!>
+				<div id="get-ability" class="section-profile" style="display: block;">
+					<div class="row">
+						<div class="column section-border" style="flex:100%;">
+							<button id="addAbilities" type="button" class="atomic-button" onclick="addAbilities()">Add Abilities</button>
+						</div>
+					</div>
+				<div>
+			</center>
+		</div>
+
+		<!-- Ability box --!>
+
+		<div id="ability-profile" class="section-profile" style="display: block">
+			<div class="row">
+				<div class="top-tip">
+					<table>
+						<tr>
+							<td><button id="previousAbility">&#8592;</button></td>
+							<td><button id="nextAbility">&#02192</button></td>
+						</tr>
+					</table>
+				</div>
+				<div class="column section-border" style="flex:25%;">
+					<img src="">
+					<h4>Manage abilities</h4>
+					<p>View available techniques</p>
+					<center>
+						<select id="ability-tactic-filter" onchange="populateTacticAbilities({{ abilities }});">
+							<option value="" disabled selected>Select ATT&CK tactic</option>
+							{% for tactic in tactics %}
+								<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
+							{% endfor %}
+						</select>
+					</center>
+					<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');">
+						<option value="" disabled selected>Select ability</option>
+					</select>
+				</div>
+				<div class="column" style="flex:75%;text-align:left;">
+					<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="ability-table">
+						<tr>
+							<td><p>Ability ID:</p></td>
+							<td><input id="ability-id"/></td>
+						<tr>
+						<tr>
+							<td><p>ATT&CK Tactic:</p></td>
+							<td><input id="ability-tactic" spellcheck="false"/></td>
+						<tr>
+						<tr>
+							<td><p>ATT&CK Technique ID:</p></td>
+							<td><input id="ability-technique-id" spellcheck="false"/></td>
+						<tr>
+						<tr>
+							<td><p>ATT&CK Technique Name:</p></td>
+							<td><input id="ability-technique-name" spellcheck="false"/></td>
+						<tr>
+						<tr>
+							<td><p>Name:</p></td>
+							<td><input id="ability-name" spellcheck="false"/></td>
+						<tr>
+						<tr>
+							<td><p>Description:</p></td>
+							<td><input id="ability-description" spellcheck="false"/></td>
+						<tr>
+						<tr>
+							<td><p>Platform:</p></td>
+							<td><input id="ability-executor" spellcheck="false"/></td>
+						<tr>
+						<tr>
+							<td><p>Command:</p></td>
+							<td><textarea id="ability-command" spellcheck="false"></textarea></td>
+						<tr>
+						<tr>
+							<td><p>Cleanup:</p></td>
+							<td><input id="ability-cleanup" spellcheck="false"/></td>
+						<tr>
+						<tr id="precondtions">
+							<td><p>Requires:</p></td>
+							<td>
+								<ol id="ability-precondtions"></ol>
+							</td>
+						<tr>
+					</table>
+				</div>
+			</div>
+		</div>
+		<!--{% for a in abilities %}
             <pre style="color:white">{{ a }}</pre>
             <hr>
-        {% endfor %}
-    </div>
+        {% endfor %}--!>
+	</div>
 </body>
+<script src="/gui/jquery/jquery.js"></script>
+<script src="/gui/jquery/jquery-ui.js"></script>
+<script src="/gui/jquery/jquery.dataTables.min.js"></script>
+<script src="/gui/jquery/jquery.dataTables.select.min.js"></script>
+<script src="/atomiccaldera/js/atomiccaldera.js"></script>
+<script src="/atomiccaldera/js/sections.js"></script>
 </html>

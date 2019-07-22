@@ -34,8 +34,19 @@ class AtomicCaldera:
 
 	@template('atomiccaldera.html')
 	async def landing(self, request):
-		results = await self.get_art(request)
-		return results
+		await self.auth_svc.check_permissions(request)
+		abilities = []
+		tactics = []
+		try:
+			abilities = await self.ac_data_svc.explode_art_abilities()
+			self.log.debug(abilities)
+			for ab in abilities:
+				if not ab['tactic'] in tactics:
+					tactics.append(ab['tactic'])
+			self.log.debug('Got the abilities and tactics.')
+		except Exception as e:
+			self.log.error(e)
+		return { 'abilities': abilities, 'tactics': tactics }
 
 	async def getMITREPhase(self, attackID):
 		filter = [
@@ -73,15 +84,21 @@ class AtomicCaldera:
 								attack_name = atomic['name']
 								description = atomic['description']
 								if 'command' in atomic['executor'].keys():
-									command = re.sub(r'x07', r'a', repr(atomic['executor']['command'])).strip().encode('utf-8')
+									command = re.sub(r'x07', r'a', repr(atomic['executor']['command'])).strip()
+									command = command.encode('utf-8').decode('unicode_escape')
 									executor = atomic['executor']['name']
+									if command[0] == '\'':
+										command = command.strip('\'')
+									elif command[0] == '\"':
+										command = command.strip('\"')
 								else:
-									command = ''.encode('utf-8')
+									command = ''
 									executor = ''
 								
 								try:
-									checkUnique = { 'technique': artObj.attackTech[1:],
-										'command': b64encode(command)}
+									if command != '':
+										checkUnique = { 'technique': int(artObj.attackTech[1:]),
+											'command': b64encode(command.encode('utf-8')).decode('utf-8')}
 								except Exception as e:
 									print(e)
 								
@@ -102,7 +119,7 @@ class AtomicCaldera:
 											'tactic': await self.getMITREPhase(artObj.attackTech),
 											'attack_name': attack_name,
 											'executor': executor,
-											'command': b64encode(command)})
+											'command': b64encode(command.encode('utf-8')).decode('utf-8')})
 									except Exception as e:
 										print(e)
 
@@ -126,28 +143,39 @@ class AtomicCaldera:
 		try:
 			atomics = await self.get_atomics()
 		except Exception as e:
-			print(e)
+			self.log.error(e)
 			pass
 		return atomics
 
-	async def import_art_abilities(self, request):
-		atomics = get_atomics()
+	async def import_art_abilities(self):
+		try:
+			atomics = await self.get_atomics()
+		except Exception as e:
+			self.log.error(e)
+			pass
 		for ability in atomics['abilities']:
-			self.ac_data_svc.create_art_ability(ability)
+			await self.ac_data_svc.create_art_ability(ability)
+		for variable in atomics['variables']:
+			await self.ac_data_svc.create_art_variable(variable)
 
 	async def rest_api(self, request):
+		self.log.debug('Starting Rest call.')
 		await self.auth_svc.check_permissions(request)
 		data = dict(await request.json())
 		index = data.pop('index')
+		self.log.debug('Index: {}'.format(index))
 		
 		options = dict(
 			PUT=dict(
-				ac_ability=lambda d: self.create_art_ability(**d)
+				ac_ability=lambda d: self.import_art_abilities(**d)
 			),
 			POST=dict(
-				ac_ability=lambda d: self.explode_art_abilities(**d)
+				ac_ability=lambda d: self.ac_data_svc.explode_art_abilities(**d)
 			)
 		)
-		output = await options[request.method][index](data)
+		try:
+			output = await options[request.method][index](data)
+		except Exception as e:
+			self.log.error(e)
 		return web.json_response(output)
 

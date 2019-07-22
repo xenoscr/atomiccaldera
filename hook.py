@@ -7,8 +7,9 @@ description = 'A plugin for MITRE\'s Caldera to convert and manage Red Canaries 
 address = '/plugin/atomiccaldera/gui'
 
 async def initialize(app, services):
-	ac_data_svc = ACDatabase(CoreDao('ac.db'), services.get('utility_svc'))
+	ac_data_svc = ACDatabase(CoreDao('ac.db', False), services.get('utility_svc'))
 	ac_api = AtomicCaldera(services, ac_data_svc)
 	data_svc = services.get('data_svc')
+	app.router.add_static('/atomiccaldera', 'plugins/atomiccaldera/static', append_version=True)
 	app.router.add_route('*', '/plugin/atomiccaldera/gui', ac_api.landing)
 	app.router.add_route('*', '/plugin/atomiccaldera/rest', ac_api.rest_api)
