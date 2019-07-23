@@ -37,16 +37,20 @@ class AtomicCaldera:
 		await self.auth_svc.check_permissions(request)
 		abilities = []
 		tactics = []
+		variables = []
 		try:
 			abilities = await self.ac_data_svc.explode_art_abilities()
-			self.log.debug(abilities)
 			for ab in abilities:
 				if not ab['tactic'] in tactics:
 					tactics.append(ab['tactic'])
-			self.log.debug('Got the abilities and tactics.')
 		except Exception as e:
 			self.log.error(e)
-		return { 'abilities': abilities, 'tactics': tactics }
+
+		try:
+			variables = await self.ac_data_svc.explode_art_variables()
+		except Exception as e:
+			self.log.error(e)
+		return { 'abilities': abilities, 'tactics': tactics, 'variables': variables }
 
 	async def getMITREPhase(self, attackID):
 		filter = [
@@ -81,7 +85,7 @@ class AtomicCaldera:
 						# Loop through the tests
 						if artObj.atomicTests:
 							for atomic in artObj.atomicTests:
-								attack_name = atomic['name']
+								name = atomic['name']
 								description = atomic['description']
 								if 'command' in atomic['executor'].keys():
 									command = re.sub(r'x07', r'a', repr(atomic['executor']['command'])).strip()
@@ -114,10 +118,10 @@ class AtomicCaldera:
 										# Add the new ability to export
 										artAbilities.append({'ability_id': ability_id,
 											'technique': artObj.attackTech[1:],
-											'name': artObj.displayName,
+											'name': name,
 											'description': description,
 											'tactic': await self.getMITREPhase(artObj.attackTech),
-											'attack_name': attack_name,
+											'attack_name': artObj.displayName,
 											'executor': executor,
 											'command': b64encode(command.encode('utf-8')).decode('utf-8')})
 									except Exception as e:
@@ -126,10 +130,14 @@ class AtomicCaldera:
 									if 'input_arguments' in atomic.keys():
 										for argument in atomic['input_arguments'].keys():
 											try:
-												curVar = re.sub(r'x07', r'a', repr(atomic['input_arguments'][argument]['default'])).strip().encode('utf-8')
+												curVar = re.sub(r'x07', r'a', repr(atomic['input_arguments'][argument]['default'])).strip()
+												if curVar[0] == '\'':
+													curVar = curVar.strip('\'')
+												elif curVar[0] == '\"':
+													curVar = curVar.strip('\"')
 												artVars.append({'ability_id': ability_id,
 													'var_name': argument,
-													'value': b64encode(curVar)})
+													'value': b64encode(curVar.encode('utf-8')).decode('utf-8')})
 											except:
 												pass
 		else:
@@ -152,11 +160,21 @@ class AtomicCaldera:
 			atomics = await self.get_atomics()
 		except Exception as e:
 			self.log.error(e)
-			pass
+			return 'Failed to load abilities.'
 		for ability in atomics['abilities']:
 			await self.ac_data_svc.create_art_ability(ability)
 		for variable in atomics['variables']:
 			await self.ac_data_svc.create_art_variable(variable)
+		return 'Successfully imported new abilities.'
+	
+	async def save_art_ability(self, data):
+		key = data.pop('key')
+		value = data.pop('value')
+		updates = data.pop('data')
+		if await self.ac_data_svc.update_art_ability(key, value, updates):
+			return 'Updated ability: {}'.format(value)
+		else:
+			return 'Update failed for ability: {}'.format(value)
 
 	async def rest_api(self, request):
 		self.log.debug('Starting Rest call.')
@@ -170,7 +188,11 @@ class AtomicCaldera:
 				ac_ability=lambda d: self.import_art_abilities(**d)
 			),
 			POST=dict(
-				ac_ability=lambda d: self.ac_data_svc.explode_art_abilities(**d)
+				ac_ability=lambda d: self.ac_data_svc.explode_art_abilities(**d),
+				ac_ability_save=lambda d: self.save_art_ability(data=d)
+			),
+			DELETE=dict(
+				delete_all=lambda d: self.ac_data_svc.delete_all(**d)
 			)
 		)
 		try:

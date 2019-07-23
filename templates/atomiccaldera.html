@@ -26,6 +26,11 @@
 					<div class="row">
 						<div class="column section-border" style="flex:100%;">
 							<button id="addAbilities" type="button" class="atomic-button" onclick="addAbilities()">Add Abilities</button>
+							<button id="reloadAbilities" type="button" class="atomic-button" onclick="reloadAbilities()">Reload Abilities</button>
+						</div>
+						<div class="column" style="flex:75%;text-align:left;">
+							<center><h4>Last Process Status</h4></center>
+							<p class="process-status"></p>
 						</div>
 					</div>
 				<div>
@@ -40,25 +45,26 @@
 					<table>
 						<tr>
 							<td><button id="previousAbility">&#8592;</button></td>
-							<td><button id="nextAbility">&#02192</button></td>
+							<td><button id="nextAbility">&#x02192;</button></td>
 						</tr>
 					</table>
 				</div>
 				<div class="column section-border" style="flex:25%;">
-					<img src="">
+					<img src=""/>
 					<h4>Manage abilities</h4>
 					<p>View available techniques</p>
 					<center>
-						<select id="ability-tactic-filter" onchange="populateTacticAbilities({{ abilities }});">
+						<select id="ability-tactic-filter" onchange="populateTacticAbilities({{ abilities }});updateButtonState('#saveAbility', 'invalid');">
 							<option value="" disabled selected>Select ATT&CK tactic</option>
 							{% for tactic in tactics %}
 								<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
 							{% endfor %}
 						</select>
 					</center>
-					<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');">
+					<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');populateVariables({{ variables }});">
 						<option value="" disabled selected>Select ability</option>
 					</select>
+					<button id="saveAbility" type="button" class="button-notready atomic-button" onclick="saveAbility();">Save Ability</button>
 				</div>
 				<div class="column" style="flex:75%;text-align:left;">
 					<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="ability-table">
@@ -103,7 +109,13 @@
 							<td>
 								<ol id="ability-precondtions"></ol>
 							</td>
-						<tr>
+						</tr>
+					</table>
+					<h2>Variable Table</h2>
+					<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="variable-table">
+						<tbody>
+							<tr></tr>
+						</tbody>
 					</table>
 				</div>
 			</div>

@@ -1,9 +1,52 @@
+// Portions of this code were borrowed from MITRE's Caldera chain plugin. All credits to them for anything I have reused.
+
 function addAbilities() {
+	$('p.process-status').html('Adding abilities now... please wait.')
 	restRequest('PUT', {"index": "ac_ability"}, addAbilitiesCallback);
 }
 
 function addAbilitiesCallback(data) {
 	alert(data);
+	$('p.process-status').html(data);
+	location.reload();
+}
+
+function reloadAbilities() {
+	$('p.process-status').html('<p>Clicking "YES" will delete all ability and variable data. Are you sure?</p><button id="yoloDelete" class="atomic-button" style="background-color:darkred;">YES</button><button id="safeNo" class="atomic-button" style="background-color:green;">NO</button>');
+	$('#yoloDelete').click(function() {
+		deleteAll();
+	});
+	$('#safeNo').click(function() {
+		$('p.process-status').html('Reload process cancled.');
+	});
+}
+
+$(document).ready(function () {
+    $("#ability-property-filter option").val(function(idx, val) {
+        $(this).siblings('[value="'+ val +'"]').remove();
+    });
+    $('#nextAbility').click(function() {
+        $('#ability-test option:selected').next().prop("selected", true);
+        loadAbility();
+    });
+    $('#previousAbility').click(function() {
+        $('#ability-test option:selected').prev().prop("selected", true);
+        loadAbility();
+    });
+    $('#nextResult').click(function() {
+        $('#decisionResult').get(0).value++;
+        findResults();
+    });
+});
+
+function deleteAll() {
+	restRequest('DELETE', {"index": "delete_all"}, deleteAllCallback);
+}
+
+function deleteAllCallback() {
+	addAbilities();
+	alert('Abilities have been reloaded, the page will refresh now.');
+	location.reload();
 }
 
 function populateTacticAbilities(exploits){
@@ -26,18 +69,38 @@ function appendAbilityToList(tactic, value) {
         .attr("ability_id",value['ability_id'])
         .data("tactic", tactic)
         .data("technique", value['technique'])
+		.data("attack_name", value['attack_name'])
         .data("name", value['name'])
         .data("description", value['description'])
         .data("executor", value['executor'])
         .data("command",value['command'])
         .data("cleanup", value['cleanup'])
-        .text(value['name'] +' ('+value['platform']+')'));
+        .text(value['name'] +' ('+value['executor']+')'));
+}
+
+function populateVariables(variables) {
+	clearVariables();
+	
+	let ability_id = $('#ability-profile').find('#ability-id').val();
+	alert(ability_id)
+	variables.forEach(function(variable) {
+		if(ability_id == variable.ability_id)
+			$('table.variable-table tbody tr:last').after('<tr></tr>').append($('<td></td>').append($('<p></p>').text(variable.var_name))).append($('<td></td>').append($('<input></input>').attr('align', 'left').attr('style', 'text-align:left;').val(atob(variable.value))));
+	});
+}
+
+function clearVariables() {
+	$('table.variable-table tbody tr').remove();
+	$('table.variable-table tbody').append('<tr></tr>');
 }
 
 function clearAbilityDossier(){
     $('#ability-profile .ability-table tr:last td:input,ol').each(function(){
         $(this).val('');
         $(this).empty();
+    });
+    $('#ability-profile').find('textarea#ability-command').each(function(){
+        $(this).html('');
     });
 }
 
@@ -65,6 +128,29 @@ function loadAbility() {
     for(let k in requirements) {
         $(parent).find('#ability-preconditions').append('<li>'+requirements[k]+'</li>');
     }
+}
+
+function saveAbility() {
+	let parent = $('#ability-profile');
+
+	let abilityValues = { 
+		'name': $(parent).find('#ability-name').val(),
+		'executor': $(parent).find('#ability-executor').val(),
+		'tactic': $(parent).find('#ability-tactic').val(),
+		'technique': $(parent).find('#ability-technique-id').val(),
+		'attack_name': $(parent).find('#ability-technique-name').val(),
+		'description': $(parent).find('#ability-description').val(),
+		'command': btoa($(parent).find('#ability-command').val()),
+		'cleanup': btoa($(parent).find('#ability-cleanup').val())
+	};
+	restRequest('POST', {"index": "ac_ability_save", "key": "ability_id", "value": $(parent).find('#ability-id').val(), "data": abilityValues}, saveAbilityCallback);
+}
+
+function saveAbilityCallback(data) {
+	$('p.process-status').html('<p>' + data + '</p><button id="reloadPage" class="atomic-button">Reload Page</button>');
+    $('#reloadPage').click(function() {
+        location.reload();
+	});
 }
 
 function buildRequirements(encodedTest){
