@@ -28,10 +28,12 @@ $(document).ready(function () {
     $('#nextAbility').click(function() {
         $('#ability-test option:selected').next().prop("selected", true);
         loadAbility();
+		populateVariables();
     });
     $('#previousAbility').click(function() {
         $('#ability-test option:selected').prev().prop("selected", true);
         loadAbility();
+		populateVariables();
     });
     $('#nextResult').click(function() {
         $('#decisionResult').get(0).value++;
@@ -49,7 +51,9 @@ function deleteAllCallback() {
 	location.reload();
 }
 
-function populateTacticAbilities(exploits){
+function populateTacticAbilities(){
+	let exploits = JSON.parse($('#ability-data pre').text());
+	
     let parent = $('#ability-profile');
     clearAbilityDossier();
     $(parent).find('#ability-test').empty().append("<option disabled='disabled' selected>Select ability</option>");
@@ -78,14 +82,14 @@ function appendAbilityToList(tactic, value) {
         .text(value['name'] +' ('+value['executor']+')'));
 }
 
-function populateVariables(variables) {
+function populateVariables() {
 	clearVariables();
+	let variables = JSON.parse($('#variable-data pre').text());
 	
 	let ability_id = $('#ability-profile').find('#ability-id').val();
-	alert(ability_id)
 	variables.forEach(function(variable) {
 		if(ability_id == variable.ability_id)
-			$('table.variable-table tbody tr:last').after('<tr></tr>').append($('<td></td>').append($('<p></p>').text(variable.var_name))).append($('<td></td>').append($('<input></input>').attr('align', 'left').attr('style', 'text-align:left;').val(atob(variable.value))));
+			$('table.variable-table tbody tr:last').after('<tr></tr>').attr('class', 'variable').append($('<td></td>').attr('class', 'name').append($('<p></p>').text(variable.var_name))).append($('<td></td>').attr('class', 'value').append($('<input></input>').attr('align', 'left').attr('style', 'text-align:left;').val(atob(variable.value))));
 	});
 }
 
@@ -151,6 +155,21 @@ function saveAbilityCallback(data) {
     $('#reloadPage').click(function() {
         location.reload();
 	});
+}
+
+function saveVariables() {
+	let ability_id = $('#ability-profile').find('#ability-id').val();
+
+	let variables = [];
+
+	$('#variable-table').find('tr.variable').each(function a() {
+		variables.push({ 'ability_id': ability_id, 'var_name': $(this).find('td.name p').text(), 'value': btoa($(this).find('td.value input').val()) });
+	});
+	restRequest('POST', {"index": "ac_variables_save", "key": "ability_id", "value": ability_id, "data": variables}, saveVariablesCallback);
+}
+
+function saveVariablesCallback(data) {
+	alert(data);
 }
 
 function buildRequirements(encodedTest){

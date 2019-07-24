@@ -1,135 +1,138 @@
 <html>
-<head>
-  <title>Atomic-Caldera | Dashboard</title>
-  <link rel="shortcut icon" type="image/png" href="/gui/img/favicon.png"/>
-  <link rel="stylesheet" href="/gui/css/shared.css">
-  <link rel="stylesheet" href="/gui/css/navbar.css">
-  <link rel="stylesheet" href="/gui/jquery/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="/gui/css/tabs.css">
-  <link rel="stylesheet" href="/chain/css/modal.css">
-  <link rel="stylesheet" href="/chain/css/basic.css">
-  <link rel="stylesheet" href="/chain/css/timeline.css">
-</head>
-<body>
-    <div class="topnav">
-      <a href="/">Home</a>
-      <a class="active" href="/plugin/atomiccaldera/gui">AtomicCaldera</a>
-      <div class="topnav-right">
-        <a href="/logout">Logout</a>
-      </div>
-    </div>
-    <div>
-		<div id="atomic-blocks" class="row-canvas">
-			<center>
-				<!-- buttons --!>
-				<div id="get-ability" class="section-profile" style="display: block;">
-					<div class="row">
-						<div class="column section-border" style="flex:100%;">
-							<button id="addAbilities" type="button" class="atomic-button" onclick="addAbilities()">Add Abilities</button>
-							<button id="reloadAbilities" type="button" class="atomic-button" onclick="reloadAbilities()">Reload Abilities</button>
-						</div>
-						<div class="column" style="flex:75%;text-align:left;">
-							<center><h4>Last Process Status</h4></center>
-							<p class="process-status"></p>
-						</div>
-					</div>
-				<div>
-			</center>
-		</div>
-
-		<!-- Ability box --!>
-
-		<div id="ability-profile" class="section-profile" style="display: block">
-			<div class="row">
-				<div class="top-tip">
-					<table>
-						<tr>
-							<td><button id="previousAbility">&#8592;</button></td>
-							<td><button id="nextAbility">&#x02192;</button></td>
-						</tr>
-					</table>
-				</div>
-				<div class="column section-border" style="flex:25%;">
-					<img src=""/>
-					<h4>Manage abilities</h4>
-					<p>View available techniques</p>
-					<center>
-						<select id="ability-tactic-filter" onchange="populateTacticAbilities({{ abilities }});updateButtonState('#saveAbility', 'invalid');">
-							<option value="" disabled selected>Select ATT&CK tactic</option>
-							{% for tactic in tactics %}
-								<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
-							{% endfor %}
-						</select>
-					</center>
-					<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');populateVariables({{ variables }});">
-						<option value="" disabled selected>Select ability</option>
-					</select>
-					<button id="saveAbility" type="button" class="button-notready atomic-button" onclick="saveAbility();">Save Ability</button>
-				</div>
-				<div class="column" style="flex:75%;text-align:left;">
-					<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="ability-table">
-						<tr>
-							<td><p>Ability ID:</p></td>
-							<td><input id="ability-id"/></td>
-						<tr>
-						<tr>
-							<td><p>ATT&CK Tactic:</p></td>
-							<td><input id="ability-tactic" spellcheck="false"/></td>
-						<tr>
-						<tr>
-							<td><p>ATT&CK Technique ID:</p></td>
-							<td><input id="ability-technique-id" spellcheck="false"/></td>
-						<tr>
-						<tr>
-							<td><p>ATT&CK Technique Name:</p></td>
-							<td><input id="ability-technique-name" spellcheck="false"/></td>
-						<tr>
-						<tr>
-							<td><p>Name:</p></td>
-							<td><input id="ability-name" spellcheck="false"/></td>
-						<tr>
-						<tr>
-							<td><p>Description:</p></td>
-							<td><input id="ability-description" spellcheck="false"/></td>
-						<tr>
-						<tr>
-							<td><p>Platform:</p></td>
-							<td><input id="ability-executor" spellcheck="false"/></td>
-						<tr>
-						<tr>
-							<td><p>Command:</p></td>
-							<td><textarea id="ability-command" spellcheck="false"></textarea></td>
-						<tr>
-						<tr>
-							<td><p>Cleanup:</p></td>
-							<td><input id="ability-cleanup" spellcheck="false"/></td>
-						<tr>
-						<tr id="precondtions">
-							<td><p>Requires:</p></td>
-							<td>
-								<ol id="ability-precondtions"></ol>
-							</td>
-						</tr>
-					</table>
-					<h2>Variable Table</h2>
-					<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="variable-table">
-						<tbody>
-							<tr></tr>
-						</tbody>
-					</table>
-				</div>
+	<head>
+		<title>Atomic-Caldera | Dashboard</title>
+		<link rel="shortcut icon" type="image/png" href="/gui/img/favicon.png"/>
+		<link rel="stylesheet" href="/gui/css/shared.css">
+		<link rel="stylesheet" href="/gui/css/navbar.css">
+		<link rel="stylesheet" href="/gui/jquery/jquery.dataTables.min.css">
+		<link rel="stylesheet" href="/gui/css/tabs.css">
+		<link rel="stylesheet" href="/chain/css/modal.css">
+		<link rel="stylesheet" href="/chain/css/basic.css">
+		<link rel="stylesheet" href="/chain/css/timeline.css">
+	</head>
+	<body>
+		<div class="topnav">
+			<a href="/">Home</a>
+			<a class="active" href="/plugin/atomiccaldera/gui">AtomicCaldera</a>
+			<div class="topnav-right">
+				<a href="/logout">Logout</a>
 			</div>
 		</div>
-		<!--{% for a in abilities %}
-            <pre style="color:white">{{ a }}</pre>
-            <hr>
-        {% endfor %}--!>
-	</div>
-</body>
-<script src="/gui/jquery/jquery.js"></script>
-<script src="/gui/jquery/jquery-ui.js"></script>
-<script src="/gui/jquery/jquery.dataTables.min.js"></script>
-<script src="/gui/jquery/jquery.dataTables.select.min.js"></script>
-<script src="/atomiccaldera/js/atomiccaldera.js"></script>
-<script src="/atomiccaldera/js/sections.js"></script>
+		<div>
+			<div id="atomic-blocks" class="row-canvas">
+				<center>
+					<!-- buttons --!>
+					<div id="get-ability" class="section-profile" style="display: block;">
+						<div class="row">
+							<div class="column section-border" style="flex:100%;">
+								<button id="addAbilities" type="button" class="atomic-button" onclick="addAbilities()">Add Abilities</button>
+								<button id="reloadAbilities" type="button" class="atomic-button" onclick="reloadAbilities()">Reload Abilities</button>
+							</div>
+							<div class="column" style="flex:75%;text-align:left;">
+								<center><h4>Last Process Status</h4></center>
+								<p class="process-status"></p>
+							</div>
+						</div>
+					<div>
+					<!-- Ability box --!>
+
+					<div id="ability-profile" class="section-profile" style="display: block">
+						<div class="row">
+							<div class="top-tip">
+								<table>
+									<tr>
+										<td><button id="previousAbility">&#8592;</button></td>
+										<td><button id="nextAbility">&#x02192;</button></td>
+									</tr>
+								</table>
+							</div>
+							<div class="column section-border" style="flex:25%;">
+								<img src=""/>
+								<h4>Manage abilities</h4>
+								<p>View available techniques</p>
+								<center>
+									<select id="ability-tactic-filter" onchange="populateTacticAbilities();updateButtonState('#saveAbility', 'invalid');">
+										<option value="" disabled selected>Select ATT&CK tactic</option>
+										{% for tactic in tactics %}
+											<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
+										{% endfor %}
+									</select>
+									<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');populateVariables();">
+										<option value="" disabled selected>Select ability</option>
+									</select>
+									<button id="saveAbility" type="button" class="button-notready atomic-button" onclick="saveAbility();">Save Ability</button>
+								</center>
+							</div>
+							<div class="column" style="flex:75%;text-align:left;">
+								<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="ability-table">
+									<tr>
+										<td><p>Ability ID:</p></td>
+										<td><input id="ability-id"/></td>
+									<tr>
+									<tr>
+										<td><p>ATT&CK Tactic:</p></td>
+										<td><input id="ability-tactic" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>ATT&CK Technique ID:</p></td>
+										<td><input id="ability-technique-id" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>ATT&CK Technique Name:</p></td>
+										<td><input id="ability-technique-name" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Name:</p></td>
+										<td><input id="ability-name" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Description:</p></td>
+										<td><input id="ability-description" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Platform:</p></td>
+										<td><input id="ability-executor" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Command:</p></td>
+										<td><textarea id="ability-command" spellcheck="false"></textarea></td>
+									<tr>
+									<tr>
+										<td><p>Cleanup:</p></td>
+										<td><input id="ability-cleanup" spellcheck="false"/></td>
+									<tr>
+									<tr id="precondtions">
+										<td><p>Requires:</p></td>
+										<td>
+											<ol id="ability-precondtions"></ol>
+										</td>
+									</tr>
+								</table>
+								<h2>Variable Table</h2>
+								<table id="variable-table" class="variable-table"  style="width:100%;border-spacing:20px;border-collapse:collapse;">
+									<tbody>
+										<tr></tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</center>
+			</div>
+		</div>
+		<div id="data-box" class="data-box" style="display:none;">
+			<div id="ability-data" class="ability-data" style="display:none">
+				<pre>{{ abilities }}</pre>
+			</div>
+			<div id="variable-data" class="ability-data" style="display:none">
+				<pre>{{ variables }}</pre>
+			</div>
+		</div>
+	</body>
+	<script src="/gui/jquery/jquery.js"></script>
+	<script src="/gui/jquery/jquery-ui.js"></script>
+	<script src="/gui/jquery/jquery.dataTables.min.js"></script>
+	<script src="/gui/jquery/jquery.dataTables.select.min.js"></script>
+	<script src="/atomiccaldera/js/atomiccaldera.js"></script>
+	<script src="/atomiccaldera/js/sections.js"></script>
 </html>

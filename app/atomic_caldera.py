@@ -1,4 +1,4 @@
-import asyncio, logging, os, sys, re, uuid, yaml
+import asyncio, json, logging, os, sys, re, uuid, yaml
 
 from plugins.atomiccaldera.app.artyaml import ARTyaml
 from app.utility.logger import Logger
@@ -50,7 +50,7 @@ class AtomicCaldera:
 			variables = await self.ac_data_svc.explode_art_variables()
 		except Exception as e:
 			self.log.error(e)
-		return { 'abilities': abilities, 'tactics': tactics, 'variables': variables }
+		return { 'abilities': json.dumps(abilities), 'tactics': tactics, 'variables': json.dumps(variables) }
 
 	async def getMITREPhase(self, attackID):
 		filter = [
@@ -176,6 +176,15 @@ class AtomicCaldera:
 		else:
 			return 'Update failed for ability: {}'.format(value)
 
+	async def save_art_variables(self, data):
+		key = data.pop('key')
+		value = data.pop('value')
+		updates = data.pop('data')
+		if await self.ac_data_svc.update_art_variables(key, value, updates):
+			return 'Updated variables successfully.'
+		else:
+			return 'Updates to variables failed.'
+
 	async def rest_api(self, request):
 		self.log.debug('Starting Rest call.')
 		await self.auth_svc.check_permissions(request)
@@ -189,7 +198,8 @@ class AtomicCaldera:
 			),
 			POST=dict(
 				ac_ability=lambda d: self.ac_data_svc.explode_art_abilities(**d),
-				ac_ability_save=lambda d: self.save_art_ability(data=d)
+				ac_ability_save=lambda d: self.save_art_ability(data=d),
+				ac_variables_save=lambda d: self.save_art_variables(data=d)
 			),
 			DELETE=dict(
 				delete_all=lambda d: self.ac_data_svc.delete_all(**d)

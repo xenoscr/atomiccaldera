@@ -61,6 +61,15 @@ class ACDatabase:
 			return False
 		return True
 
+	async def update_art_variables(self, key, value, data):
+		try:
+			for variable in data:
+				self.log.debug("UPDATE art_var SET value = '{}' WHERE ability_id = '{}' AND var_name = '{}';".format(variable['value'], variable['ability_id'], variable['var_name']))
+		except Exception as e:
+			self.log.error(e)
+			return False
+		return True
+
 	async def delete_all(self):
 		try:
 			status = await self.dao.raw_update('DELETE FROM art_ability;')
