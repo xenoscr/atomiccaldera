@@ -1,2 +1,2 @@
-CREATE TABLE if not exists art_ability (id integer primary key AUTOINCREMENT, ability_id text, technique integer, name text, description text, tactic text, attack_name text, executor text, command text, cleanup text, UNIQUE (ability_id, executor, command) ON CONFLICT IGNORE);
+CREATE TABLE if not exists art_ability (id integer primary key AUTOINCREMENT, ability_id text, technique integer, name text, description text, tactic text, attack_name text, platform text, executor text, command text, cleanup text, UNIQUE (ability_id, executor, command) ON CONFLICT IGNORE);
 CREATE TABLE if not exists art_var (id integer primary key AUTOINCREMENT, ability_id text, var_name text, value text, UNIQUE (ability_id, var_name) ON CONFLICT IGNORE);

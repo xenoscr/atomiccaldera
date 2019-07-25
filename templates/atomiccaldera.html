@@ -18,6 +18,38 @@
 				<a href="/logout">Logout</a>
 			</div>
 		</div>
+
+		<!-- Menu Bar --!>
+		<div class="column" style="flex:100%;margin-top:0">
+			<center>
+				<div id="build-workflow-toolbar" class="row-toolbar subnav">
+					<div class="row-toolbar-section" id="section-0">
+						<button id="addAbilities" type="button" class="row-toolbar-button" onclick="addAbilities()">
+							<span class="icon"><img src=""/></span>
+							<span class="caption">Add Abilities</span>
+						</button>
+					</div>
+					<div class="row-toolbar-section" id="section-1">
+						<button id="reloadAbilities" type="button" class="row-toolbar-button" onclick="reloadAbilities()">
+							<span class="icon"><img src=""/></span>
+							<span class="caption">Reload Abilities</span>
+						</button>
+					</div>
+					<div class="row-toolbar-section" id="section-2">
+						<button id="exportOneAbility" type="button" class="row-toolbar-button" onclick="exportOneToStockpile()">	
+							<span class="icon"><img src=""/></span>
+							<span class="caption">Export Selected Ability</span>
+						</button>
+					</div>
+					<div class="row-toolbar-section" id="section-3">
+						<button id="exportAllToAbilities" type="button" class="row-toolbar-button" onclick="exportAllToStockpile()">
+							<span class="icon"><img src=""/></span>
+							<span class="caption">Export All Abilities</span>
+						</button>
+					</div>
+				</div>
+			</center>
+		<div>
 		<div>
 			<div id="atomic-blocks" class="row-canvas">
 				<center>
@@ -27,6 +59,8 @@
 							<div class="column section-border" style="flex:100%;">
 								<button id="addAbilities" type="button" class="atomic-button" onclick="addAbilities()">Add Abilities</button>
 								<button id="reloadAbilities" type="button" class="atomic-button" onclick="reloadAbilities()">Reload Abilities</button>
+								<button id="exportOneAbility" type="button" class="button-notready atomic-button" onclick="exportOneToStockpile()">Export Selected Abilities</button>
+								<button id="exportAllToAbilities" type="button" class="atomic-button" onclick="exportAllToStockpile()">Export All Abilities</button>
 							</div>
 							<div class="column" style="flex:75%;text-align:left;">
 								<center><h4>Last Process Status</h4></center>
@@ -51,13 +85,13 @@
 								<h4>Manage abilities</h4>
 								<p>View available techniques</p>
 								<center>
-									<select id="ability-tactic-filter" onchange="populateTacticAbilities();updateButtonState('#saveAbility', 'invalid');">
+									<select id="ability-tactic-filter" onchange="populateTacticAbilities();updateButtonState('#saveAbility', 'invalid');updateButtonState('#saveVariables', 'invalid');updateButtonState('#exportOneAbility', 'invalid');">
 										<option value="" disabled selected>Select ATT&CK tactic</option>
 										{% for tactic in tactics %}
 											<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
 										{% endfor %}
 									</select>
-									<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');populateVariables();">
+									<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');updateButtonState('#saveVariables', 'valid');updateButtonState('#exportOneAbility', 'valid');populateVariables();">
 										<option value="" disabled selected>Select ability</option>
 									</select>
 									<button id="saveAbility" type="button" class="button-notready atomic-button" onclick="saveAbility();">Save Ability</button>
@@ -91,6 +125,10 @@
 									<tr>
 									<tr>
 										<td><p>Platform:</p></td>
+										<td><input id="ability-platform" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Executor:</p></td>
 										<td><input id="ability-executor" spellcheck="false"/></td>
 									<tr>
 									<tr>
@@ -114,6 +152,11 @@
 										<tr></tr>
 									</tbody>
 								</table>
+								<div class="variable-save" style="width:100%">
+									<center>
+										<button id="saveVariables" type="button" class="button-notready atomic-button" onclick="saveVariables()">Save Variables</button>
+									</center>
+								<div>
 							</div>
 						</div>
 					</div>

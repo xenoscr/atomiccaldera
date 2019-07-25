@@ -76,10 +76,11 @@ function appendAbilityToList(tactic, value) {
 		.data("attack_name", value['attack_name'])
         .data("name", value['name'])
         .data("description", value['description'])
+		.data("platform", value['platform'])
         .data("executor", value['executor'])
         .data("command",value['command'])
         .data("cleanup", value['cleanup'])
-        .text(value['name'] +' ('+value['executor']+')'));
+        .text(value['name'] +' ('+value['platform']+'/'+value['executor']+')'));
 }
 
 function populateVariables() {
@@ -87,10 +88,18 @@ function populateVariables() {
 	let variables = JSON.parse($('#variable-data pre').text());
 	
 	let ability_id = $('#ability-profile').find('#ability-id').val();
+	let varCount = 0;
 	variables.forEach(function(variable) {
 		if(ability_id == variable.ability_id)
-			$('table.variable-table tbody tr:last').after('<tr></tr>').attr('class', 'variable').append($('<td></td>').attr('class', 'name').append($('<p></p>').text(variable.var_name))).append($('<td></td>').attr('class', 'value').append($('<input></input>').attr('align', 'left').attr('style', 'text-align:left;').val(atob(variable.value))));
+		{
+			varCount++;
+			$('table.variable-table tbody tr:last').after('<tr></tr>').attr('class', 'variable').append($('<td></td>').attr('class', 'name').append($('<p></p>').data("id", variable.id).text(variable.var_name))).append($('<td></td>').attr('class', 'value').append($('<input></input>').attr('align', 'left').attr('style', 'text-align:left;').val(atob(variable.value))));
+		}
 	});
+	if(varCount == 0)
+		updateButtonState('#saveVariables', 'invalid');
+	else
+		updateButtonState('#saveVariables', 'valid');
 }
 
 function clearVariables() {
@@ -116,6 +125,7 @@ function loadAbility() {
     $(parent).find('#ability-id').val($(chosen).attr('ability_id'));
     $(parent).find('#ability-name').val($(chosen).data('name'));
     $(parent).find('#ability-executor').val($(chosen).data('executor'));
+	$(parent).find('#ability-platform').val($(chosen).data('platform'));
     $(parent).find('#ability-tactic').val($(chosen).data('tactic'));
     $(parent).find('#ability-technique-id').val($(chosen).data('technique'));
     $(parent).find('#ability-technique-name').val($(chosen).data('attack_name'));
@@ -139,6 +149,7 @@ function saveAbility() {
 
 	let abilityValues = { 
 		'name': $(parent).find('#ability-name').val(),
+		'platform': $(parent).find('#ability-platform').val(),
 		'executor': $(parent).find('#ability-executor').val(),
 		'tactic': $(parent).find('#ability-tactic').val(),
 		'technique': $(parent).find('#ability-technique-id').val(),
@@ -163,13 +174,16 @@ function saveVariables() {
 	let variables = [];
 
 	$('#variable-table').find('tr.variable').each(function a() {
-		variables.push({ 'ability_id': ability_id, 'var_name': $(this).find('td.name p').text(), 'value': btoa($(this).find('td.value input').val()) });
+		variables.push({ 'id': $(this).find('td.name p').data('id'), 'ability_id': ability_id, 'var_name': $(this).find('td.name p').text(), 'value': btoa($(this).find('td.value input').val()) });
 	});
-	restRequest('POST', {"index": "ac_variables_save", "key": "ability_id", "value": ability_id, "data": variables}, saveVariablesCallback);
+	restRequest('POST', {"index": "ac_variables_save", "data": variables}, saveVariablesCallback);
 }
 
 function saveVariablesCallback(data) {
-	alert(data);
+	$('p.process-status').html('<p>' + data + '</p><button id="reloadPage" class="atomic-button">Reload Page</button>');
+    $('#reloadPage').click(function() {
+        location.reload();
+    });
 }
 
 function buildRequirements(encodedTest){
@@ -184,4 +198,17 @@ function buildRequirements(encodedTest){
         });
     }
     return [];
+}
+
+function exportAllToStockpile() {
+	restRequest('POST', { "index": "ac_export_all", "data": "" }, exportStockpileCallback);
+}
+
+function exportOneToStockpile(){
+	let ability_id = $('#ability-profile').find('#ability-id').val();
+	restRequest('POST', { "index": "ac_export_one", "ability_id": ability_id }, exportStockpileCallback);
+}
+
+function exportStockpileCallback(data) {
+	alert(data);
 }

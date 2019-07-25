@@ -35,6 +35,24 @@ class ACDatabase:
 		else:
 			return False
 
+	async def get_art_ability(self, condition):
+		data = None
+		try:
+			data = await self.dao.get('art_ability', condition)
+		except Exception as e:
+			self.log.error(e)
+			return None
+		return data
+
+	async def get_art_variable(self, condition):
+		data = None
+		try:
+			data = await self.dao.get('art_var', condition)
+		except Exception as e:
+			self.log.error(e)
+			return None
+		return data
+
 	async def explode_art_abilities(self, criteria=None):
 		try:
 			abilities =  await self.dao.get('art_ability', criteria=criteria)
@@ -61,10 +79,12 @@ class ACDatabase:
 			return False
 		return True
 
-	async def update_art_variables(self, key, value, data):
+	async def update_art_variables(self, data):
 		try:
 			for variable in data:
-				self.log.debug("UPDATE art_var SET value = '{}' WHERE ability_id = '{}' AND var_name = '{}';".format(variable['value'], variable['ability_id'], variable['var_name']))
+				updates = { 'var_name': variable['var_name'], 'value': variable['value'] }
+				status = await self.dao.update('art_var', 'id', variable['id'], updates)
+				self.log.debug(status)
 		except Exception as e:
 			self.log.error(e)
 			return False
