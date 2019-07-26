@@ -14,3 +14,9 @@ function updateButtonState(selector, state) {
         $(selector).attr('class','button-success atomic-button') :
         $(selector).attr('class','button-notready atomic-button');
 }
+
+function updateNavButtonState(selector, state) {
+    (state === 'valid') ?
+        $(selector).attr('class','row-toolbar-button') :
+        $(selector).attr('class','row-toolbar-button-notready row-toolbar-button');
+}

@@ -3,6 +3,7 @@ import asyncio, json, logging, os, sys, re, uuid, yaml
 from plugins.atomiccaldera.app.artyaml import ARTyaml
 from app.utility.logger import Logger
 
+from pathlib import Path
 from base64 import b64encode, b64decode
 from aiohttp import web
 from aiohttp_jinja2 import template
@@ -144,6 +145,7 @@ class AtomicCaldera:
 															curVar = curVar.strip('\'')
 														elif curVar[0] == '\"':
 															curVar = curVar.strip('\"')
+														curVar = curVar.replace('\\\\', '\\')
 														artVars.append({'ability_id': ability_id,
 															'var_name': argument,
 															'value': b64encode(curVar.encode('utf-8')).decode('utf-8')})
@@ -227,7 +229,7 @@ class AtomicCaldera:
 				# BAT files to run.
 				if (executor.lower() == 'command_prompt'):
 					batCommand = command
-					command = '#{{file}}\\{}.bat'.format(ability['ability_id'])
+					command = '#{{files}}\\{}.bat'.format(ability['ability_id'])
 					payload = '{}.bat'.format(ability['ability_id'])
 				else:
 					command = command.replace('\\n','\n')
@@ -241,8 +243,8 @@ class AtomicCaldera:
 				'technique': { 'attack_id': 'T{}'.format(str(ability['technique'])), 'name': ability['attack_name'] },
 				'executors': { executor: { 'command': cmdStr(command), 'payload': payload }}}]
 
-			payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../payloads/')
-			abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../abilities/')
+			payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/payloads/')
+			abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/abilities/')
 
 			# Check and create payloads folder if it does not exist
 			try:
@@ -311,6 +313,25 @@ class AtomicCaldera:
 			return 'Updated variables successfully.'
 		else:
 			return 'Updates to variables failed.'
+	
+	async def delete_all(self):
+		abilities = []
+		payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/payloads/')
+		abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/abilities/')
+		try:
+			abilities = await self.ac_data_svc.explode_art_abilities()
+		except Exception as e:
+			self.log.error(e)
+
+		for ability in abilities:
+			if os.path.exists(os.path.join(abilityPath, ability['tactic'], '{}.yml'.format(ability['ability_id']))):
+				os.remove(os.path.join(abilityPath, ability['tactic'], '{}.yml'.format(ability['ability_id'])))
+			if os.path.exists(os.path.join(payloadPath, '{}.bat'.format(ability['ability_id']))):
+				os.remove(os.path.join(payloadPath, '{}.bat'.format(ability['ability_id'])))
+		status = await self.ac_data_svc.delete_all()
+		await self.ac_data_svc.build_db(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../conf/ac.sql'))
+		return status
+			
 
 	async def rest_api(self, request):
 		self.log.debug('Starting Rest call.')
@@ -331,12 +352,13 @@ class AtomicCaldera:
 				ac_export_one=lambda d: self.export_one_to_stockpile(data=d)
 			),
 			DELETE=dict(
-				delete_all=lambda d: self.ac_data_svc.delete_all(**d)
+				delete_all=lambda d: self.delete_all(**d)
 			)
 		)
 		try:
 			output = await options[request.method][index](data)
 		except Exception as e:
+			self.log.debug('Stopped at api call.')
 			self.log.error(e)
 		return web.json_response(output)
 

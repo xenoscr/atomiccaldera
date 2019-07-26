@@ -1,7 +1,15 @@
 // Portions of this code were borrowed from MITRE's Caldera chain plugin. All credits to them for anything I have reused.
 
 function addAbilities() {
-	$('p.process-status').html('Adding abilities now... please wait.')
+	$('p.process-status').html('<p>Adding abilities, please wait...</p><p>This does take a while, please be patient.</p>')
+	updateNavButtonState('#addAbilities', 'invalid');
+	updateNavButtonState('#reloadAbilities', 'invalid');
+	updateNavButtonState('#exportOneAbility', 'invalid');
+	updateNavButtonState('#exportAllToAbilities', 'invalid');
+	updateButtonState('#saveAbility', 'invalid');
+	updateButtonState('#saveVariables', 'invalid');
+	$('select#ability-tactic-filter').prop("disabled", true);
+	$('select#ability-test').prop("disabled", true);
 	restRequest('PUT', {"index": "ac_ability"}, addAbilitiesCallback);
 }
 
@@ -12,8 +20,9 @@ function addAbilitiesCallback(data) {
 }
 
 function reloadAbilities() {
-	$('p.process-status').html('<p>Clicking "YES" will delete all ability and variable data. Are you sure?</p><button id="yoloDelete" class="atomic-button" style="background-color:darkred;">YES</button><button id="safeNo" class="atomic-button" style="background-color:green;">NO</button>');
+	$('p.process-status').html('<p>Clicking "YES" will delete all ability and variable data. <b>WARNING: You will lose all current UUIDs!</b> Are you sure?</p><center><button id="yoloDelete" class="atomic-button" style="background-color:darkred;">YES</button><button id="safeNo" class="atomic-button" style="background-color:green;">NO</button></center>');
 	$('#yoloDelete').click(function() {
+		$('p.process-status').html('<p>Reloading abilities, please wait...</p><p>This does take a while, please be patient.</p>')
 		deleteAll();
 	});
 	$('#safeNo').click(function() {
@@ -42,12 +51,22 @@ $(document).ready(function () {
 });
 
 function deleteAll() {
+	clearAbility();
+	clearVariables();
+	updateNavButtonState('#addAbilities', 'invalid');
+	updateNavButtonState('#reloadAbilities', 'invalid');
+	updateNavButtonState('#exportOneAbility', 'invalid');
+	updateNavButtonState('#exportAllToAbilities', 'invalid');
+	updateButtonState('#saveAbility', 'invalid');
+	updateButtonState('#saveVariables', 'invalid');
+	$('select#ability-tactic-filter').prop("disabled", true);
+	$('select#ability-test').prop("disabled", true);
 	restRequest('DELETE', {"index": "delete_all"}, deleteAllCallback);
 }
 
 function deleteAllCallback() {
+	$('p.process-status').html('<p>Abilities have been deleted.</p>');
 	addAbilities();
-	alert('Abilities have been reloaded, the page will refresh now.');
 	location.reload();
 }
 
@@ -132,16 +151,22 @@ function loadAbility() {
     $(parent).find('#ability-description').val($(chosen).data('description'));
     $(parent).find('#ability-command').html(atob($(chosen).data('command')));
     $(parent).find('#ability-cleanup').val(atob($(chosen).data('cleanup')));
+}
 
-    for(let k in $(chosen).data('parser')) {
-        $(parent).find('#ability-postconditions').append('<li>'+$(chosen).data('parser')[k].property+'</li>');
-        $(parent).find('#ability-fact-name').val($(chosen).data('parser')[k].fact);
-        $(parent).find('#ability-fact-regex').val($(chosen).data('parser')[k].regex);
-    }
-    let requirements = buildRequirements($(chosen).data('command'));
-    for(let k in requirements) {
-        $(parent).find('#ability-preconditions').append('<li>'+requirements[k]+'</li>');
-    }
+function clearAbility() {
+    let parent = $('#ability-profile');
+    clearAbilityDossier();
+
+    $(parent).find('#ability-id').val('');
+    $(parent).find('#ability-name').val('');
+    $(parent).find('#ability-executor').val('');
+	$(parent).find('#ability-platform').val('');
+    $(parent).find('#ability-tactic').val('');
+    $(parent).find('#ability-technique-id').val('');
+    $(parent).find('#ability-technique-name').val('');
+    $(parent).find('#ability-description').val('');
+    $(parent).find('#ability-command').html('');
+    $(parent).find('#ability-cleanup').val('');
 }
 
 function saveAbility() {
@@ -162,7 +187,7 @@ function saveAbility() {
 }
 
 function saveAbilityCallback(data) {
-	$('p.process-status').html('<p>' + data + '</p><button id="reloadPage" class="atomic-button">Reload Page</button>');
+	$('p.process-status').html('<p>' + data + '</p><center><button id="reloadPage" class="atomic-button">Reload Page</button></center>');
     $('#reloadPage').click(function() {
         location.reload();
 	});
@@ -180,7 +205,7 @@ function saveVariables() {
 }
 
 function saveVariablesCallback(data) {
-	$('p.process-status').html('<p>' + data + '</p><button id="reloadPage" class="atomic-button">Reload Page</button>');
+	$('p.process-status').html('<p>' + data + '</p><center><button id="reloadPage" class="atomic-button">Reload Page</button></center>');
     $('#reloadPage').click(function() {
         location.reload();
     });
@@ -201,14 +226,16 @@ function buildRequirements(encodedTest){
 }
 
 function exportAllToStockpile() {
+	$('p.process-status').html('<p>Exporting all Abilities to Stockpile. Please wait.</p>');
 	restRequest('POST', { "index": "ac_export_all", "data": "" }, exportStockpileCallback);
 }
 
 function exportOneToStockpile(){
+	$('p.process-status').html('<p>Exporting Ability to Stockpile. Please wait.</p>');
 	let ability_id = $('#ability-profile').find('#ability-id').val();
 	restRequest('POST', { "index": "ac_export_one", "ability_id": ability_id }, exportStockpileCallback);
 }
 
 function exportStockpileCallback(data) {
-	alert(data);
+	$('p.process-status').html('<p>' + data + '</p>');
 }

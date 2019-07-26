@@ -92,8 +92,8 @@ class ACDatabase:
 
 	async def delete_all(self):
 		try:
-			status = await self.dao.raw_update('DELETE FROM art_ability;')
-			status = await self.dao.raw_update('DELETE FROM art_var;')
+			status = await self.dao.raw_update('DROP TABLE art_ability;')
+			status = await self.dao.raw_update('DROP TABLE art_var;')
 		except Exception as e:
 			self.log.error(e)
 			return 'Deletion failed.'

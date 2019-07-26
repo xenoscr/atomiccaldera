@@ -6,9 +6,9 @@
 		<link rel="stylesheet" href="/gui/css/navbar.css">
 		<link rel="stylesheet" href="/gui/jquery/jquery.dataTables.min.css">
 		<link rel="stylesheet" href="/gui/css/tabs.css">
-		<link rel="stylesheet" href="/chain/css/modal.css">
-		<link rel="stylesheet" href="/chain/css/basic.css">
-		<link rel="stylesheet" href="/chain/css/timeline.css">
+		<link rel="stylesheet" href="/atomiccaldera/css/modal.css">
+		<link rel="stylesheet" href="/atomiccaldera/css/basic.css">
+		<link rel="stylesheet" href="/atomiccaldera/css/timeline.css">
 	</head>
 	<body>
 		<div class="topnav">
@@ -25,25 +25,25 @@
 				<div id="build-workflow-toolbar" class="row-toolbar subnav">
 					<div class="row-toolbar-section" id="section-0">
 						<button id="addAbilities" type="button" class="row-toolbar-button" onclick="addAbilities()">
-							<span class="icon"><img src=""/></span>
+							<span class="icon"><img src="/atomiccaldera/img/load.png"/></span>
 							<span class="caption">Add Abilities</span>
 						</button>
 					</div>
 					<div class="row-toolbar-section" id="section-1">
 						<button id="reloadAbilities" type="button" class="row-toolbar-button" onclick="reloadAbilities()">
-							<span class="icon"><img src=""/></span>
+							<span class="icon"><img src="/atomiccaldera/img/reload.png"/></span>
 							<span class="caption">Reload Abilities</span>
 						</button>
 					</div>
 					<div class="row-toolbar-section" id="section-2">
-						<button id="exportOneAbility" type="button" class="row-toolbar-button" onclick="exportOneToStockpile()">	
-							<span class="icon"><img src=""/></span>
+						<button id="exportOneAbility" type="button" class="row-toolbar-button-notready row-toolbar-button" onclick="exportOneToStockpile()">	
+							<span class="icon"><img src="/atomiccaldera/img/export-one.png"/></span>
 							<span class="caption">Export Selected Ability</span>
 						</button>
 					</div>
 					<div class="row-toolbar-section" id="section-3">
 						<button id="exportAllToAbilities" type="button" class="row-toolbar-button" onclick="exportAllToStockpile()">
-							<span class="icon"><img src=""/></span>
+							<span class="icon"><img src="/atomiccaldera/img/export-all.png"/></span>
 							<span class="caption">Export All Abilities</span>
 						</button>
 					</div>
@@ -55,15 +55,9 @@
 				<center>
 					<!-- buttons --!>
 					<div id="get-ability" class="section-profile" style="display: block;">
-						<div class="row">
-							<div class="column section-border" style="flex:100%;">
-								<button id="addAbilities" type="button" class="atomic-button" onclick="addAbilities()">Add Abilities</button>
-								<button id="reloadAbilities" type="button" class="atomic-button" onclick="reloadAbilities()">Reload Abilities</button>
-								<button id="exportOneAbility" type="button" class="button-notready atomic-button" onclick="exportOneToStockpile()">Export Selected Abilities</button>
-								<button id="exportAllToAbilities" type="button" class="atomic-button" onclick="exportAllToStockpile()">Export All Abilities</button>
-							</div>
-							<div class="column" style="flex:75%;text-align:left;">
-								<center><h4>Last Process Status</h4></center>
+						<div class="row" style="margin:10;padding-top:5">
+							<div class="column" style="flex:75%;text-align:left;margin-top:0;">
+								<center><h4>Process Status</h4></center>
 								<p class="process-status"></p>
 							</div>
 						</div>
@@ -71,7 +65,7 @@
 					<!-- Ability box --!>
 
 					<div id="ability-profile" class="section-profile" style="display: block">
-						<div class="row">
+						<div class="row" style="margin:10;">
 							<div class="top-tip">
 								<table>
 									<tr>
@@ -81,17 +75,17 @@
 								</table>
 							</div>
 							<div class="column section-border" style="flex:25%;">
-								<img src=""/>
+								<img src="/atomiccaldera/img/atomics.png"/>
 								<h4>Manage abilities</h4>
 								<p>View available techniques</p>
 								<center>
-									<select id="ability-tactic-filter" onchange="populateTacticAbilities();updateButtonState('#saveAbility', 'invalid');updateButtonState('#saveVariables', 'invalid');updateButtonState('#exportOneAbility', 'invalid');">
+									<select id="ability-tactic-filter" onchange="populateTacticAbilities();updateButtonState('#saveAbility', 'invalid');updateButtonState('#saveVariables', 'invalid');updateNavButtonState('#exportOneAbility', 'invalid');">
 										<option value="" disabled selected>Select ATT&CK tactic</option>
 										{% for tactic in tactics %}
 											<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
 										{% endfor %}
 									</select>
-									<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');updateButtonState('#saveVariables', 'valid');updateButtonState('#exportOneAbility', 'valid');populateVariables();">
+									<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');updateButtonState('#saveVariables', 'valid');updateNavButtonState('#exportOneAbility', 'valid');populateVariables();">
 										<option value="" disabled selected>Select ability</option>
 									</select>
 									<button id="saveAbility" type="button" class="button-notready atomic-button" onclick="saveAbility();">Save Ability</button>
@@ -139,13 +133,6 @@
 										<td><p>Cleanup:</p></td>
 										<td><input id="ability-cleanup" spellcheck="false"/></td>
 									<tr>
-									<tr id="precondtions">
-										<td><p>Requires:</p></td>
-										<td>
-											<ol id="ability-precondtions"></ol>
-										</td>
-									</tr>
-								</table>
 								<h2>Variable Table</h2>
 								<table id="variable-table" class="variable-table"  style="width:100%;border-spacing:20px;border-collapse:collapse;">
 									<tbody>
