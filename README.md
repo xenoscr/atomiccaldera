@@ -51,39 +51,33 @@ The first time you access the Atomic Caldera plugin you will need to import the 
 #### Selecting an Ability
 To select an ability:
 1. First select a tactic "Select ATT&CK tactic" drop down.
-2. Next select the ability from the "Select ability" drop down.&nbsp;
-![Selecting an ability](images/selectability.png?raw=true "Select Ability")&nbsp;
+2. Next select the ability from the "Select ability" drop down.
+...![Selecting an ability](images/selectability.png?raw=true "Select Ability")
 
-After you have selected an ability you can use the left and right arrows to quicly move through the list of available abilities related to the selected tactic.
+...After you have selected an ability you can use the left and right arrows to quicly move through the list of available abilities related to the selected tactic.
 #### Saving an Ability
 If you have made changes to an ability and wish to save them:
-1. Click the "Save Ability" button.&nbsp;
-![Save Ability](images/saveability.png?raw=true "Save Ability")&nbsp;
-
+1. Click the "Save Ability" button.
+...![Save Ability](images/saveability.png?raw=true "Save Ability")
 #### Saving Variables
 If you have made changes to variables and wish to save them:
-1. Click the "Save Variables" button.&nbsp;
-![Save variables](images/savevariables.png?raw=true "Save Variables")&nbsp;
-
+1. Click the "Save Variables" button.
+...![Save variables](images/savevariables.png?raw=true "Save Variables")
 #### Export a Single Ability
 If you wish to export the selected ability only to Stockpile:
-1. Click the Export Ability button.&nbsp;
-![Export ability](images/exportone.png?raw=true "Export single ability")&nbsp;
-
+1. Click the Export Ability button.
+...![Export ability](images/exportone.png?raw=true "Export single ability")&nbsp;
 #### Export All Abilites
 If you wish to export all of the abilities from Atomic Caldera to Stockpile:
-1. Click the Export All Abilities button.&nbsp;
-![Export All Abilities](images/exportall.png?raw=true "Export All Abilities")&nbsp;
-
+1. Click the Export All Abilities button.
+...![Export All Abilities](images/exportall.png?raw=true "Export All Abilities")
 #### Reloading Data (i.e. Start over)
 If you wish to delete everything that has been imported and wish to start over, do so by:
-1. Click the Reload Abilities button.&nbsp;
-![Reload Abilities](images/reloadabilities.png?raw=true "Reload Abilities")&nbsp;
-
+1. Click the Reload Abilities button.
+...![Reload Abilities](images/reloadabilities.png?raw=true "Reload Abilities")
 2. Click the Yes button.&nbsp;
-![Yes](images/yes.png?raw=true "Yes")&nbsp;
-
-After clicking yes, it will then take some time for the abilites to complete reloading.
+...![Yes](images/yes.png?raw=true "Yes")
+...After clicking yes, it will then take some time for the abilites to complete reloading.
 NOTE: It is necessary to restart Caldera to view the new abilties. At the moment there is no way to force Chain to relaod its database from the GUI.
 ## To-Do
 Stil not perfect but, it gets the bulk fo the work done at this time. I would like to work on/fix the following eventually:
