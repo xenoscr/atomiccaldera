@@ -1,3 +1,20 @@
+################################################################################
+# Name: atomic_caldera.py
+# Author: Conor Richard (@xenosCR)
+#
+# Description: This is the plugin version of the original Atomic-Caldera script
+# the purpose of this plugin is to simplify the task of importing Red Canary's
+# Atomic Red Team tests into MITRE's Caldera testing framework. With this plugin
+# you can quickly build a library of abilities that can be used to create custom
+# adversaries to use with Caldera.
+#
+# Instructions: See the README.md file.
+#
+# Credits:
+# Red Canary's Atomic Red Team - https://github.com/redcanaryco/atomic-red-team
+# MITRE's Caldera - https://github.com/mitre/caldera
+################################################################################
+
 import asyncio, json, logging, os, sys, re, uuid, yaml
 
 from plugins.atomiccaldera.app.artyaml import ARTyaml

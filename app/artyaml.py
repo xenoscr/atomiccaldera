@@ -1,4 +1,17 @@
 #!/usr/bin/python
+################################################################################
+# Name: artyaml.py
+# Author: Conor Richard (@xenosCR)
+#
+# Description: The ARTyaml class is a simple class that is used to read and
+# parse the contents of Red Canary's Atomic Red Team (ART) YAML files.
+#
+# Instructions: See the README.md file.
+#
+# Credits:
+# Red Canary's Atomic Red Team - https://github.com/redcanaryco/atomic-red-team
+# MITRE's Caldera - https://github.com/mitre/caldera
+################################################################################
 
 import asyncio
 import os, sys, yaml

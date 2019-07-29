@@ -1,4 +1,17 @@
 #!/usr/bin/python
+################################################################################
+# Name: ac_database.py
+# Author: Conor Richard (@xenosCR)
+#
+# Description: The ACDatabase class is used to perform the database functions 
+# required for the Atomic Caldera plugin to work.
+#
+# Instructions: See the README.md file.
+#
+# Credits:
+# Red Canary's Atomic Red Team - https://github.com/redcanaryco/atomic-red-team
+# MITRE's Caldera - https://github.com/mitre/caldera
+################################################################################
 
 import asyncio, os
 
