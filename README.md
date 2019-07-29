@@ -2,9 +2,9 @@
 A MITRE Caldera plugin written in Python 3 used to convert Red Canary Atomic Red Team Tests to MITRE Caldera Stockpile YAML ability files.
 
 ## Backstory
-While looking into tools to help test and develop Red/Blue (Purple) teams by running MITRE ATT&CK mapped tests, I investigated MITRE's Caldera (https://github.com/mitre/caldera) and liked what I saw. I did not like that Caldera does not included many abilties/tests by default. I also looked at Red Canay's Atomic Red Team (https://github.com/redcanaryco/atomic-red-team), there are lot of tests included with Atomic Red Team but the included testing framework wasn't as nice as Caldera. I also like the Sandcat (https://github.com/mitre/sandcat) plugin included with Caldera. It can easily be run on many different endpoints, it is light weight, and provides the capability to perform tests from a central Caldera server. By combining the tests from Red Canary's Atomic Red Team with the testing framework of MITRE's Caldera the best of both tool sets could be enjoyed.
+While looking into tools to help test and develop Red/Blue (Purple) teams by running MITRE ATT&CK mapped tests, I investigated MITRE's Caldera (https://github.com/mitre/caldera) and liked what I saw. I did not like that Caldera does not included many abilities/tests by default. I also looked at Red Canary's Atomic Red Team (https://github.com/redcanaryco/atomic-red-team), there are lot of tests included with Atomic Red Team but the included testing framework wasn't as nice as Caldera. I also like the Sandcat (https://github.com/mitre/sandcat) plugin included with Caldera. It can easily be run on many different endpoints, it is light weight, and provides the capability to perform tests from a central Caldera server. By combining the tests from Red Canary's Atomic Red Team with the testing framework of MITRE's Caldera the best of both tool sets could be enjoyed.
 
-I looked around and did not find any tools to convert Red Canary's Atomic Red Team tests to MITRE Caldera Stockpile (https://github.com/mitre/stockpile) format. My desire to quickly build a library using the high quality tests provided by Red Canary in MITRE's Caldera framework drove me to write a "quick" script. This desire led me down a path of developing the tool as a plugin to MITRE's Caldera. This most recent update can now be used with Caldera as a plugin.
+I looked around and did not find any tools to convert Red Canary's Atomic Red Team tests to MITRE Caldera Stockpile (https://github.com/mitre/stockpile) format. My desire to quickly build a library using the high quality tests provided by Red Canary in MITRE's Caldera framework drove me to write a "quick" script. This desire led me down a path of developing the tool as a plugin to MITRE's Caldera. This most recent update can now be used with Caldera as a plugin. The original scripts can still be located in the legacy folder and used indipendently from the plugin.
 
 ## Requirements
 Python 3.6.8+ with the following libraries installed
@@ -57,7 +57,7 @@ To select an ability:
 
 ![Selecting an ability](images/selectability.png?raw=true "Select Ability")
 
-After you have selected an ability you can use the left and right arrows to quicly move through the list of available abilities related to the selected tactic.
+After you have selected an ability you can use the left and right arrows to quickly move through the list of available abilities related to the selected tactic.
 
 #### Saving an Ability
 If you have made changes to an ability and wish to save them:
@@ -77,7 +77,7 @@ If you wish to export the selected ability only to Stockpile:
 
 ![Export ability](images/exportone.png?raw=true "Export single ability")&nbsp;
 
-#### Export All Abilites
+#### Export All Abilities
 If you wish to export all of the abilities from Atomic Caldera to Stockpile:
 1. Click the Export All Abilities button.
 
@@ -93,19 +93,19 @@ If you wish to delete everything that has been imported and wish to start over, 
 
 ![Yes](images/yes.png?raw=true "Yes")
 
-After clicking yes, it will then take some time for the abilites to complete reloading.
-**NOTE**: It is necessary to restart Caldera to view the new abilties. At the moment there is no way to force Chain to relaod its database from the GUI.
+After clicking yes, it will then take some time for the abilities to complete reloading.
+**NOTE**: It is necessary to restart Caldera to view the new abilities. At the moment there is no way to force Chain to reload its database from the GUI.
 
 ## To-Do
-Stil not perfect but, it gets the bulk fo the work done at this time. I would like to work on/fix the following eventually:
+Still not perfect but, it gets the bulk for the work done at this time. I would like to work on/fix the following eventually:
 - [ ] Include the ability to build adversaries from ART tests. Chain removed the ability to edit adversaries via the GUI which makes it more difficult to quickly build adversaries.
 
-## ChangeLog
+## Change-Log
 ### v3.0
 What didn't change?
 * Atomic Caldera is now a plugin for MITRE's Caldera
-* Added ability to edit and save changes to abilites and variables
-* Added ability to export ablilites directly to Stockpile YAML files.
+* Added ability to edit and save changes to abilities and variables
+* Added ability to export ablilities directly to Stockpile YAML files.
 
 ### v2.0
 * Changed the default output to generate Caldera YML files with the variables intact. i.e. #{variable}
