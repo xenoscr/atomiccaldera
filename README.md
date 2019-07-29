@@ -47,14 +47,18 @@ Edit Caldera's local.yml file and add atomiccaldera to the plugins section.
 ## Usage
 ### Atomic-Caldera
 The first time you access the Atomic Caldera plugin you will need to import the Atomic Red Team YAML files to populate Atomic Caldera's database. To do this click the "Add Abilities" button. Adding the abilities for the first time will take some time to complete, please be patient, the status will update when the import is completed.
+
 ![Click "Add Abilities"](images/addabilites.png?raw=true "Add Abilities")
+
 #### Selecting an Ability
 To select an ability:
 1. First select a tactic "Select ATT&CK tactic" drop down.
 2. Next select the ability from the "Select ability" drop down.
-   ![Selecting an ability](images/selectability.png?raw=true "Select Ability")
 
-   After you have selected an ability you can use the left and right arrows to quicly move through the list of available abilities related to the selected tactic.
+![Selecting an ability](images/selectability.png?raw=true "Select Ability")
+
+After you have selected an ability you can use the left and right arrows to quicly move through the list of available abilities related to the selected tactic.
+
 #### Saving an Ability
 If you have made changes to an ability and wish to save them:
 1. Click the "Save Ability" button.
@@ -84,6 +88,7 @@ If you wish to delete everything that has been imported and wish to start over, 
 1. Click the Reload Abilities button
 
 ![Reload Abilities](images/reloadabilities.png?raw=true "Reload Abilities")
+
 2. Click the Yes button.
 
 ![Yes](images/yes.png?raw=true "Yes")
