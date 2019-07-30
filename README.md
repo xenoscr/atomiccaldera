@@ -3,7 +3,6 @@ A MITRE Caldera plugin written in Python 3 used to convert Red Canary Atomic Red
 
 ## Backstory
 While looking into tools to help test and develop Red/Blue (Purple) teams by running MITRE ATT&CK mapped tests, I investigated MITRE's Caldera (https://github.com/mitre/caldera) and liked what I saw. I did not like that Caldera does not included many abilities/tests by default. I also looked at Red Canary's Atomic Red Team (https://github.com/redcanaryco/atomic-red-team), there are lot of tests included with Atomic Red Team but the included testing framework wasn't as nice as Caldera. I also like the Sandcat (https://github.com/mitre/sandcat) plugin included with Caldera. It can easily be run on many different endpoints, it is light weight, and provides the capability to perform tests from a central Caldera server. By combining the tests from Red Canary's Atomic Red Team with the testing framework of MITRE's Caldera the best of both tool sets could be enjoyed.
->>>>>>> plugin
 
 I looked around and did not find any tools to convert Red Canary's Atomic Red Team tests to MITRE Caldera Stockpile (https://github.com/mitre/stockpile) format. My desire to quickly build a library using the high quality tests provided by Red Canary in MITRE's Caldera framework drove me to write a "quick" script. This desire led me down a path of developing the tool as a plugin to MITRE's Caldera. This most recent update can now be used with Caldera as a plugin. The original scripts can still be located in the legacy folder and used indipendently from the plugin.
 
