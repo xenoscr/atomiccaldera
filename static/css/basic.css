@@ -1,0 +1,345 @@
+.row-toolbar{
+    margin: 0px -30px;
+    display: flex;
+}
+.row-toolbar-section {
+    padding: 0px 25px;
+    display: inherit;
+    border-right: 1px solid #1f1d1d;
+}
+.row-toolbar-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: inherit;
+    border: none;
+    padding: 10px;
+    width: 75px;
+    color: white;
+    font-size: 11px;
+	pointer-events: auto;
+	cursor: pointer;
+}
+.row-toolbar-button:hover{
+    background-color: var(--theme-color);
+    filter: grayscale(75%);
+    border: none;
+}
+.row-toolbar-button:focus {
+    outline: none;
+}
+.row-toolbar-button img {
+    height: 23px;
+    width: 23px;
+    padding-bottom: 5px;
+    -webkit-filter: invert(1);
+   filter: invert(1);
+}
+.row-toolbar-button-notready {
+	background-color: var(--theme-color);
+	filter: grayscale(95%);
+	pointer-events: none;
+	cursor: not-allowed;
+}
+.row-toolbar-item {
+    padding: 0px 25px;
+}
+.row-toolbar-item p{
+    line-height: 22px;
+    font-size: 18px;
+    color: white;
+}
+.row-canvas{
+    flex:40%;
+}
+.section-border {
+    border-right: .5px var(--font-color) solid;
+}
+.atomic-button {
+    height:35px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    border:none;
+    border-radius: 25px;
+}
+.section-profile pre {
+    width: 90%;
+    background: white;
+    border: 1px solid #ddd;
+    border-left: 3px solid var(--theme-color);
+    color: #666;
+    page-break-inside: avoid;
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 1.6em;
+    max-width: 100%;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+}
+.section-profile img {
+    border-radius: 50%;
+    height:65px;
+    width: auto;
+    background-color: white;
+    border: 5px solid var(--theme-color);
+    margin-bottom:10px;
+}
+.section-profile h4 {
+    margin-bottom:10px;
+    margin-top:0px;
+}
+.section-profile h3 {
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-bottom:0px;
+}
+.section-profile ul {
+    list-style-type: none;
+}
+.section-profile p {
+    font-size: 13px;
+}
+.section-profile li {
+    text-align: left;
+}
+.section-profile input {
+    height: 18px;
+    width: 75%;
+    margin:5px;
+}
+.section-profile select {
+    height: 30px;
+    width: 75%;
+    margin: 5px;
+	pointer-events: auto;
+	cursor: pointer;
+}
+.section-profile-notready select {
+	pointer-events: none;
+	cursor: not-allowed;
+}
+.section-profile button {
+    width: 75%;
+}
+.top-tip {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 150px;
+    height: 25px;
+    color: var(--font-color);
+}
+.top-tip button {
+    background-color: inherit;
+    color: var(--font-color);
+    border:none;
+    font-size:24px;
+}
+.darkSelect {
+    width:200px;
+    background-color: var(--primary-background);
+    border:none;
+    color: var(--font-color);
+}
+.highlight {
+  background-color: yellow;
+}
+.ability-table td {
+    width: 30%;
+    vertical-align: middle;
+}
+.ability-table tr {
+    border-bottom:1px solid white;
+}
+.ability-table td+td {
+  width: 100%;
+}
+.ability-table p {
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight:600;
+}
+.ability-table input {
+    min-height:35px;
+    font-size:16px;
+}
+.ability-table ol {
+   list-style: none;
+   counter-reset: item;
+}
+.ability-table li {
+    list-style-type: circle;
+    margin-bottom: 5px;
+    font-size:15px;
+    color: var(--font-color);
+    line-height: 25px;
+}
+.ability-table li:before {
+   margin-right: 10px;
+   color: var(--font-color);
+   width: 1.2em;
+   display: inline-block;
+}
+.ability-table select {
+    background-color: inherit;
+    width: 90%;
+    height:22px;
+    color: var(--font-color);
+    margin-top: -5px;
+    border: none;
+    font-size:12px;
+}
+.ability-table input {
+    background-color: inherit;
+    border: none;
+    color: var(--font-color);
+    text-align: left;
+}
+.ability-table textarea {
+    height: 150px;
+    width: 100%;
+    font-size: 14px;
+    border:none;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+    color: var(--font-color);
+    background-color: inherit;
+}
+.op-dets img {
+    border-radius: 50%;
+    height:30px;
+    width: auto;
+    background-color: white;
+    border: 2px solid var(--theme-color);
+}
+.op-dets h3 {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+.op-dets p {
+    text-transform: uppercase;
+}
+#profile-tests{
+    float: left;
+}
+.profile-tests li {
+   font-size: 18px;
+   color: var(--font-color);
+   display: block;
+   float: left;
+   width:22%;
+   margin:10px;
+}
+.ability-box {
+    height:28px;
+    width: 90%;
+    background-color: var(--primary-background);
+    border-radius:50px;
+    border: 0 none;
+}
+.ability-box p {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-top: 0;
+}
+.ability-box legend {
+    font-size: 10px;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight:500;
+}
+.ability-box p {
+    padding-left: 5px;
+}
+.ability-box span {
+    color: red;
+}
+.tag {
+    font-size: 12px;
+    border-radius: 6px;
+    background-color: white;
+    margin: 3px;
+    color: black;
+    display: inline-block;
+    padding: 5px;
+    cursor: pointer;
+}
+table.dataTable td.select-checkbox {
+    position: relative;
+}
+table.dataTable td.select-checkbox:before, table.dataTable td.select-checkbox:after {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translateY(-50%);
+    box-sizing: border-box;
+}
+table.dataTable td.select-checkbox:before{
+    content: ' ';
+    margin-left: -6px;
+    border: 1px solid white;
+    border-radius: 3px;
+}
+table.dataTable tr.selected td.select-checkbox:after {
+    content: '\2713';
+    margin-top: -6px;
+    margin-left: -4px;
+    font-size: 1.7em;
+    color: green;
+    text-align: center;
+}
+.decision-card td {
+    color: var(--font-color);
+}
+.highlight {
+  background-color: yellow;
+}
+.red-x {
+    color: red;
+    font-style: italic;
+}
+
+.adv-reqs {
+    border-top:1px solid var(--font-color);
+    float: left;
+    width: 100%;
+}
+
+.adv-reqs h4 {
+    margin-bottom:-5px;
+    font-weight: 700;
+    font-size: 16px;
+    color: red;
+}
+.missing-facts-sublist{
+    padding: 0 40px;
+    float: left;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+.missing-facts-sublist > li {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+}
+#missingAdvReqs {
+    padding-left: 0;
+}
+#missingAdvReqs > li {
+    float: left;
+    display: block;
+    width: 100%;
+    margin: 0;
+
+}

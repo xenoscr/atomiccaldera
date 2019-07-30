@@ -1,0 +1,168 @@
+<html>
+	<head>
+		<title>Atomic-Caldera | Dashboard</title>
+		<link rel="shortcut icon" type="image/png" href="/gui/img/favicon.png"/>
+		<link rel="stylesheet" href="/gui/css/shared.css">
+		<link rel="stylesheet" href="/gui/css/navbar.css">
+		<link rel="stylesheet" href="/gui/jquery/jquery.dataTables.min.css">
+		<link rel="stylesheet" href="/gui/css/tabs.css">
+		<link rel="stylesheet" href="/atomiccaldera/css/modal.css">
+		<link rel="stylesheet" href="/atomiccaldera/css/basic.css">
+		<link rel="stylesheet" href="/atomiccaldera/css/timeline.css">
+	</head>
+	<body>
+		<div class="topnav">
+			<a href="/">Home</a>
+			<a class="active" href="/plugin/atomiccaldera/gui">AtomicCaldera</a>
+			<div class="topnav-right">
+				<a href="/logout">Logout</a>
+			</div>
+		</div>
+
+		<!-- Menu Bar --!>
+		<div class="column" style="flex:100%;margin-top:0">
+			<center>
+				<div id="build-workflow-toolbar" class="row-toolbar subnav">
+					<div class="row-toolbar-section" id="section-0">
+						<button id="addAbilities" type="button" class="row-toolbar-button" onclick="addAbilities()">
+							<span class="icon"><img src="/atomiccaldera/img/load.png"/></span>
+							<span class="caption">Add Abilities</span>
+						</button>
+					</div>
+					<div class="row-toolbar-section" id="section-1">
+						<button id="reloadAbilities" type="button" class="row-toolbar-button" onclick="reloadAbilities()">
+							<span class="icon"><img src="/atomiccaldera/img/reload.png"/></span>
+							<span class="caption">Reload Abilities</span>
+						</button>
+					</div>
+					<div class="row-toolbar-section" id="section-2">
+						<button id="exportOneAbility" type="button" class="row-toolbar-button-notready row-toolbar-button" onclick="exportOneToStockpile()">	
+							<span class="icon"><img src="/atomiccaldera/img/export-one.png"/></span>
+							<span class="caption">Export Selected Ability</span>
+						</button>
+					</div>
+					<div class="row-toolbar-section" id="section-3">
+						<button id="exportAllToAbilities" type="button" class="row-toolbar-button" onclick="exportAllToStockpile()">
+							<span class="icon"><img src="/atomiccaldera/img/export-all.png"/></span>
+							<span class="caption">Export All Abilities</span>
+						</button>
+					</div>
+				</div>
+			</center>
+		<div>
+		<div>
+			<div id="atomic-blocks" class="row-canvas">
+				<center>
+					<!-- buttons --!>
+					<div id="get-ability" class="section-profile" style="display: block;">
+						<div class="row" style="margin:10;padding-top:5">
+							<div class="column" style="flex:75%;text-align:left;margin-top:0;">
+								<center><h4>Process Status</h4></center>
+								<p class="process-status"></p>
+							</div>
+						</div>
+					<div>
+					<!-- Ability box --!>
+
+					<div id="ability-profile" class="section-profile" style="display: block">
+						<div class="row" style="margin:10;">
+							<div class="top-tip">
+								<table>
+									<tr>
+										<td><button id="previousAbility">&#8592;</button></td>
+										<td><button id="nextAbility">&#x02192;</button></td>
+									</tr>
+								</table>
+							</div>
+							<div class="column section-border" style="flex:25%;">
+								<img src="/atomiccaldera/img/atomics.png"/>
+								<h4>Manage abilities</h4>
+								<p>View available techniques</p>
+								<center>
+									<select id="ability-tactic-filter" onchange="populateTacticAbilities();updateButtonState('#saveAbility', 'invalid');updateButtonState('#saveVariables', 'invalid');updateNavButtonState('#exportOneAbility', 'invalid');">
+										<option value="" disabled selected>Select ATT&CK tactic</option>
+										{% for tactic in tactics %}
+											<option value{{ tactic }} data-tactic={{ tactic }}>{{ tactic }}</option>
+										{% endfor %}
+									</select>
+									<select id="ability-test" onchange="loadAbility();updateButtonState('#saveAbility','valid');updateButtonState('#saveVariables', 'valid');updateNavButtonState('#exportOneAbility', 'valid');populateVariables();">
+										<option value="" disabled selected>Select ability</option>
+									</select>
+									<button id="saveAbility" type="button" class="button-notready atomic-button" onclick="saveAbility();">Save Ability</button>
+								</center>
+							</div>
+							<div class="column" style="flex:75%;text-align:left;">
+								<table style="width:100%;border-spacing:20px;border-collapse:collapse;" class="ability-table">
+									<tr>
+										<td><p>Ability ID:</p></td>
+										<td><input id="ability-id"/></td>
+									<tr>
+									<tr>
+										<td><p>ATT&CK Tactic:</p></td>
+										<td><input id="ability-tactic" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>ATT&CK Technique ID:</p></td>
+										<td><input id="ability-technique-id" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>ATT&CK Technique Name:</p></td>
+										<td><input id="ability-technique-name" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Name:</p></td>
+										<td><input id="ability-name" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Description:</p></td>
+										<td><input id="ability-description" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Platform:</p></td>
+										<td><input id="ability-platform" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Executor:</p></td>
+										<td><input id="ability-executor" spellcheck="false"/></td>
+									<tr>
+									<tr>
+										<td><p>Command:</p></td>
+										<td><textarea id="ability-command" spellcheck="false"></textarea></td>
+									<tr>
+									<tr>
+										<td><p>Cleanup:</p></td>
+										<td><input id="ability-cleanup" spellcheck="false"/></td>
+									<tr>
+								<h2>Variable Table</h2>
+								<table id="variable-table" class="variable-table"  style="width:100%;border-spacing:20px;border-collapse:collapse;">
+									<tbody>
+										<tr></tr>
+									</tbody>
+								</table>
+								<div class="variable-save" style="width:100%">
+									<center>
+										<button id="saveVariables" type="button" class="button-notready atomic-button" onclick="saveVariables()">Save Variables</button>
+									</center>
+								<div>
+							</div>
+						</div>
+					</div>
+				</center>
+			</div>
+		</div>
+		<div id="data-box" class="data-box" style="display:none;">
+			<div id="ability-data" class="ability-data" style="display:none">
+				<pre>{{ abilities }}</pre>
+			</div>
+			<div id="variable-data" class="ability-data" style="display:none">
+				<pre>{{ variables }}</pre>
+			</div>
+		</div>
+	</body>
+	<script src="/gui/jquery/jquery.js"></script>
+	<script src="/gui/jquery/jquery-ui.js"></script>
+	<script src="/gui/jquery/jquery.dataTables.min.js"></script>
+	<script src="/gui/jquery/jquery.dataTables.select.min.js"></script>
+	<script src="/atomiccaldera/js/atomiccaldera.js"></script>
+	<script src="/atomiccaldera/js/sections.js"></script>
+</html>

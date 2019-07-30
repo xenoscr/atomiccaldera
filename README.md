@@ -1,10 +1,14 @@
 # Atomic-Caldera
-A Python 3 script to convert Red Canary Atomic Red Team Tests to MITRE Caldera Stockpile YAML ability files.
+A MITRE Caldera plugin written in Python 3 used to convert Red Canary Atomic Red Team Tests to MITRE Caldera Stockpile YAML ability files.
 
 ## Backstory
+<<<<<<< HEAD
 While looking into tools to help test and develop Red/Blue (Purple) teams by running MITRE ATT&CK mapped tests, I investigated MITRE's Caldera (https://github.com/mitre/caldera) and liked what I saw. I did not like that Caldera does not included many abilities/tests by default. I also looked at Red Canay's Atomic Red Team (https://github.com/redcanaryco/atomic-red-team), there are lot of tests included with Atomic Red Team but the included testing framework wasn't as nice as Caldera. I also like the Sandcat (https://github.com/mitre/sandcat) plugin included with Caldera. It can easily be run on many different endpoints, it is light weight, and provides the capability to perform tests from a central Caldera server. By combining the tests from Red Canary's Atomic Red Team with the testing framework of MITRE's Caldera the best of both tool sets could be enjoyed.
+=======
+While looking into tools to help test and develop Red/Blue (Purple) teams by running MITRE ATT&CK mapped tests, I investigated MITRE's Caldera (https://github.com/mitre/caldera) and liked what I saw. I did not like that Caldera does not included many abilities/tests by default. I also looked at Red Canary's Atomic Red Team (https://github.com/redcanaryco/atomic-red-team), there are lot of tests included with Atomic Red Team but the included testing framework wasn't as nice as Caldera. I also like the Sandcat (https://github.com/mitre/sandcat) plugin included with Caldera. It can easily be run on many different endpoints, it is light weight, and provides the capability to perform tests from a central Caldera server. By combining the tests from Red Canary's Atomic Red Team with the testing framework of MITRE's Caldera the best of both tool sets could be enjoyed.
+>>>>>>> plugin
 
-I looked around and did not find any tools to convert Red Canary's Atomic Red Team tests to MITRE Caldera Stockpile (https://github.com/mitre/stockpile) format. My desire to quickly build a library using the high quality tests provided by Red Canary in MITRE's Caldera framework drove me to write a "quick" script.
+I looked around and did not find any tools to convert Red Canary's Atomic Red Team tests to MITRE Caldera Stockpile (https://github.com/mitre/stockpile) format. My desire to quickly build a library using the high quality tests provided by Red Canary in MITRE's Caldera framework drove me to write a "quick" script. This desire led me down a path of developing the tool as a plugin to MITRE's Caldera. This most recent update can now be used with Caldera as a plugin. The original scripts can still be located in the legacy folder and used indipendently from the plugin.
 
 ## Requirements
 Python 3.6.8+ with the following libraries installed
@@ -16,6 +20,19 @@ Atomic-Caldera requires the following repositories be stored locally somewhere:
 * https://github.com/mitre/cti
 
 ## Installation
+Clone the repository to MITRE's Caldera "plugins" folder:
+```
+cd <path to caldera/plugins>
+git clone https://github.com/xenoscr/Atomic-Caldera.git
+```
+Rename the folder (will change, eventually.):
+```
+mv Atomic-Caldera atomiccalera
+```
+Change directories:
+```
+cd atomiccaldera
+```
 Install required Python modules:
 ```
 pip install -r requirements.txt
@@ -28,78 +45,78 @@ Clone the MITRE CTI repository:
 ```
 git clone https://github.com/mitre/cti.git
 ```
+Edit the conf/artconf.yml file to update the paths to point to your Atomic Red Team and CTI repositories.
+Edit Caldera's local.yml file and add atomiccaldera to the plugins section.
 
 ## Usage
-### Atomic-Caldera.py
-Atomic-Caldera requires only two parameters to run. The input directory where the Red Canary Atomic Red Team "atomics" folder is located and the path to the MITRE CTI repository. The output folder option and CSV file options are optional, if they are not supplied, Atomic-Caldera will save these files in the current working directory.
-```
-usage: Atomic-Caldera.py [-h] [-i INPUTDIR] [-f FILEOUTDIR] [-c CTI] [-o CSV]
-                         [-v VARCSV]
+### Atomic-Caldera
+The first time you access the Atomic Caldera plugin you will need to import the Atomic Red Team YAML files to populate Atomic Caldera's database. To do this click the "Add Abilities" button. Adding the abilities for the first time will take some time to complete, please be patient, the status will update when the import is completed.
 
-Convert Red Canary Attomic Red Team YAML files to Caldera Stockpile YAML
-files.
+![Click "Add Abilities"](images/addabilites.png?raw=true "Add Abilities")
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -i INPUTDIR, --inputdir INPUTDIR
-                        The Red Canary "atomics" folder path.
-  -f FILEOUTDIR, --fileoutdir FILEOUTDIR
-                        The directory that the converted YAML files will be
-                        stored in.
-  -c CTI, --cti CTI     The path to the MITRE CTI database, ./cti is used by
-                        default.
-  -o CSV, --csv CSV     The path to the CSV catalog file.
-  -v VARCSV, --varcsv VARCSV
-                        The path to the CSV file containing variables for each
-                        test.
-```
+#### Selecting an Ability
+To select an ability:
+1. First select a tactic "Select ATT&CK tactic" drop down.
+2. Next select the ability from the "Select ability" drop down.
 
-*Example*
-```
-./Atomic-Caldera.py -i ~/repos/atomic-red-team/atomics -c ~/repos/cti
-```
-*Example*
-```
-./Atomic-Caldera.py -i ~/repos/atomic-red-team/atomics -c ~/repos/cti -f ~/woring/ -o ~/working/atomic-caldera.csv -v ~/working/atomic-variables.csv
-```
-### Update-AtomicVariables.py
-Update-AtomicVariables requires only two parameters to run. The input directory containing the abilities YAML files that were generated by the Atomic-Caldera.py script and the path to the CSV file containing the variable values that will be used to populate the abilities YAML files. If the output option is not populated a new "abilities-updated" folder will be created in the same directory where the input source abilites are located.
-```
-usage: Update-AtomicVariables.py [-h] [-i INPUTDIR] [-o OUTPUTDIR] [-c CSV]
+![Selecting an ability](images/selectability.png?raw=true "Select Ability")
 
-Populate the variable values in the abilities folder with those provided in
-the supplied input CSV file.
+After you have selected an ability you can use the left and right arrows to quickly move through the list of available abilities related to the selected tactic.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -i INPUTDIR, --inputdir INPUTDIR
-                        The path to the "abilities" folder that needs to be
-                        updated.
-  -o OUTPUTDIR, --outputdir OUTPUTDIR
-                        The path to store the updated "abilities" folder. If
-                        no argument is provided, an "abilities-populated"
-                        folder will be created.
-  -c CSV, --csv CSV     The CSV file that will be used to update variable
-                        values.
-```
+#### Saving an Ability
+If you have made changes to an ability and wish to save them:
+1. Click the "Save Ability" button.
 
-*Example*
-```
-./Update-AtomicVariables.py -i ~/working/abilities -c ~/working/atomic-variables.csv
-````
-*Example*
-```
-./Update-AtomicVariables.py -i ~/working/abilities -o ~/working/abilities-updated -c ~/working/atomic-variables.csv
-```
+![Save Ability](images/saveability.png?raw=true "Save Ability")
+
+#### Saving Variables
+If you have made changes to variables and wish to save them:
+1. Click the "Save Variables" button.
+
+![Save variables](images/savevariables.png?raw=true "Save Variables")
+
+#### Export a Single Ability
+If you wish to export the selected ability only to Stockpile:
+1. Click the Export Ability button.
+
+![Export ability](images/exportone.png?raw=true "Export single ability")&nbsp;
+
+#### Export All Abilities
+If you wish to export all of the abilities from Atomic Caldera to Stockpile:
+1. Click the Export All Abilities button.
+
+![Export All Abilities](images/exportall.png?raw=true "Export All Abilities")
+
+#### Reloading Data (i.e. Start over)
+If you wish to delete everything that has been imported and wish to start over, do so by:
+1. Click the Reload Abilities button
+
+![Reload Abilities](images/reloadabilities.png?raw=true "Reload Abilities")
+
+2. Click the Yes button.
+
+![Yes](images/yes.png?raw=true "Yes")
+
+After clicking yes, it will then take some time for the abilities to complete reloading.
+**NOTE**: It is necessary to restart Caldera to view the new abilities. At the moment there is no way to force Chain to reload its database from the GUI.
+
 ## To-Do
-The script is not perfect but, it gets the bulk fo the work done at this time. I would like to work on/fix the following eventually:
-- [ ] Include the option to copy the generated '.yml' files into the correspoinding Caldera folders.
-## ChangeLog
+Still not perfect but, it gets the bulk for the work done at this time. I would like to work on/fix the following eventually:
+- [ ] Include the ability to build adversaries from ART tests. Chain removed the ability to edit adversaries via the GUI which makes it more difficult to quickly build adversaries.
+
+## Change-Log
+### v3.0
+What didn't change?
+* Atomic Caldera is now a plugin for MITRE's Caldera
+* Added ability to edit and save changes to abilities and variables
+* Added ability to export ablilities directly to Stockpile YAML files.
+
 ### v2.0
 * Changed the default output to generate Caldera YML files with the variables intact. i.e. #{variable}
 * Added a second CSV file output to output the CSV values so they can be edited before being imported to customize the tests.
 * Added the Update-AtomicVariables.py script to populate the variable values and save the completed tests to a new directory.
 * Added a wrapper script to support running Command Prompt commands using Caldera. Caldara supports Bash and PowerShell commands only. Some of the Atomic Red Team tests that were meant to run under the Command Prompt did not work properly due to formatting issues. The wrapper script spawns a new Command Prompt window and sends the keystrokes to run the commands. Once complete it copies the Command Prompt stdout to the clipboard so that the results can be displayed in Caldera's results window.
+
 ## License
 See the [LICENSE](https://github.com/xenoscr/Atomic-Caldera/blob/master/LICENSE)
 
