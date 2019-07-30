@@ -19,11 +19,7 @@ Atomic-Caldera requires the following repositories be stored locally somewhere:
 Clone the repository to MITRE's Caldera "plugins" folder:
 ```
 cd <path to caldera/plugins>
-git clone https://github.com/xenoscr/Atomic-Caldera.git
-```
-Rename the folder (will change, eventually.):
-```
-mv Atomic-Caldera atomiccalera
+git clone https://github.com/xenoscr/atomiccaldera.git
 ```
 Change directories:
 ```
@@ -101,6 +97,8 @@ Still not perfect but, it gets the bulk for the work done at this time. I would 
 - [ ] Include the ability to build adversaries from ART tests. Chain removed the ability to edit adversaries via the GUI which makes it more difficult to quickly build adversaries.
 
 ## Change-Log
+### v3.0.1
+* Changed the repository name to make it easier to install.
 ### v3.0
 What didn't change?
 * Atomic Caldera is now a plugin for MITRE's Caldera
