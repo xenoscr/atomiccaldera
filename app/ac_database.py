@@ -15,11 +15,13 @@
 
 import asyncio, os
 
-class ACDatabase:
+from app.service.base_service import BaseService
+
+class ACDatabase(BaseService):
 	def __init__(self, dao, utility_svc):
 		self.dao = dao
 		self.utility_svc = utility_svc
-		self.log = utility_svc.create_logger('ac_data_svc')
+		self.log = self.add_service('ac_data_svc', self)
 
 	async def build_db(self, schema):
 		with open(schema) as schema:
