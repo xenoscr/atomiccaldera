@@ -237,31 +237,38 @@ class AtomicCaldera:
 
 			if (executor.lower() == 'sh' or executor.lower() == 'bash'):
 				if platform.lower() == 'linux':
-					executor = 'linux'
+					platform = 'linux'
 				elif platform.lower() == 'macos':
-					executor = 'darwin'
-				command = command.replace('\\n','\n')
+					platform = 'darwin'
 			elif (executor.lower() == 'command_prompt' or executor.lower() == 'powershell'):
-				# DOS commands don't run will from a PowerShell prompt, we'll convert them to
-				# BAT files to run.
 				if (executor.lower() == 'command_prompt'):
-					batCommand = command
-					command = '#{{files}}\\{}.bat'.format(ability['ability_id'])
-					payload = '{}.bat'.format(ability['ability_id'])
+					executor = 'cmd'	
 				else:
-					command = command.replace('\\n','\n')
-				executor = 'windows'
+					executor = 'psh'	
+			command = command.replace('\\n','\n')
+
+			# Future additions
+			parserName = ''
+			parserProperty = ''
+			parserScript = ''
 
 			# Build the YAML data
+			#newYaml = [{ 'id': ability['ability_id'],
+			#	'name': ability['name'],
+			#	'description': ability['description'],
+			#	'tactic': ability['tactic'],
+			#	'technique': { 'attack_id': 'T{}'.format(str(ability['technique'])), 'name': ability['attack_name'] },
+			#	'platforms': { platform: { executor.lower(): { 'command': cmdStr(command), 'payload': payload, 'parser': { 'name': parserName, 'property': parserProperty, 'script': parserScript }}}}}]
+
 			newYaml = [{ 'id': ability['ability_id'],
 				'name': ability['name'],
 				'description': ability['description'],
 				'tactic': ability['tactic'],
 				'technique': { 'attack_id': 'T{}'.format(str(ability['technique'])), 'name': ability['attack_name'] },
-				'executors': { executor: { 'command': cmdStr(command), 'payload': payload }}}]
+				'platforms': { platform: { executor.lower(): { 'command': cmdStr(command), 'payload': payload }}}}]
 
-			payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/payloads/')
-			abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/abilities/')
+			payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/data/payloads/')
+			abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile//data/abilities/')
 
 			# Check and create payloads folder if it does not exist
 			try:
@@ -333,8 +340,8 @@ class AtomicCaldera:
 	
 	async def delete_all(self):
 		abilities = []
-		payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/payloads/')
-		abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/abilities/')
+		payloadPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/data/payloads/')
+		abilityPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../stockpile/data/abilities/')
 		try:
 			abilities = await self.ac_data_svc.explode_art_abilities()
 		except Exception as e:
