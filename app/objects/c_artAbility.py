@@ -25,8 +25,8 @@ class artAbility(BaseObject):
 		self.command = command
 
 	def store(self, ram):
-		existing = self.retrieve(ram['artAbility'], self.unique)
+		existing = self.retrieve(ram['art_abilities'], self.unique)
 		if not existing:
-			ram['artAbility'].append(self)
-			return self.retrieve(ram['artAbility'], self.unique)
+			ram['art_abilities'].append(self)
+			return self.retrieve(ram['art_abilities'], self.unique)
 		return existing

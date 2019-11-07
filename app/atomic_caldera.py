@@ -42,15 +42,15 @@ class AtomicCaldera:
 		self.log = Logger('atomiccaldera')
 		self.log.debug('Atomic-Caldera Plugin Logging started.')
 		self.get_conf()
-		self.fs = FileSystemSource(self.ctipath)
+		self.art_data_svc = artDataService(self.conf)
 
 	def get_conf(self):
 		confPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../conf/artconf.yml')
 		try:
 			with open(confPath, 'r') as c:
-				conf = yaml.load(c, Loader=yaml.Loader)
-			self.ctipath = os.path.expanduser(os.path.join(conf['ctipath'], 'enterprise-attack/'))
-			self.artpath = os.path.expanduser(conf['artpath'])
+				self.conf = yaml.load(c, Loader=yaml.Loader)
+			self.ctipath = os.path.expanduser(os.path.join(self.conf['ctipath'], 'enterprise-attack/'))
+			self.artpath = os.path.expanduser(self.conf['artpath'])
 			self.log.debug(self.ctipath)
 			self.log.debug(self.artpath)
 		except:
