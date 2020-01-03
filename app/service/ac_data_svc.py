@@ -52,6 +52,7 @@ class artDataService(BaseService):
 					for c_object in ram[key]:
 						await self.store(c_object)
 			self.log.debug('Restored ac object')
+		self.log.debug('There are {} jobs in the scheduler'.format(len(self.ram['schedules'])))
 
 	async def ac_apply(self, collection):
 		"""
@@ -69,7 +70,8 @@ class artDataService(BaseService):
 		:return: None
 		"""
 		self.log.debug('Loading Atomic-Red-Team data.')
-		await self._load_art())
+		loop = asyncio.get_event_loop()
+		loop.create_task(self._load_art())
 
 	async def ac_store(self, c_object):
 		"""
@@ -94,6 +96,18 @@ class artDataService(BaseService):
 		except Exception as e:
 			self.log.error('[!] LOCATE: {}'.format(e))
 
+	async def ac_noid_locate(self, object_name, match=None):
+		"""
+		Find all c_objects which match a search excluding the ability_id value. Return all c_objects if no match.
+		:param object_name:
+		:param match: dict()
+		:return: a list of c_object types
+		"""
+		try:
+			return [obj] for obj in self.ac_ram[object_name] if obj.pop.('abillity_id').match(match)]
+		except Exception as e:
+			self.log.error('[!] LOCATE: {}'.format(e))
+
 	async def ac_remove(self, object_name, match):
 		"""
 		Remove any c_objects which match a search
@@ -114,6 +128,8 @@ class artDataService(BaseService):
 				for procFile in files:
 					fullFile = os.path.join(root, procFile)
 					if os.path.splitext(fullFile)[-1].lower() == '.yaml':
+						procAbility = set()
+						procVariable = set()
 						self.log.debug('Processing {}'.format(fullFile))
 						try:
 							artObj = ARTyaml()
@@ -158,15 +174,18 @@ class artDataService(BaseService):
 												if not await self.ac_data_svc.check_art_ability({ 'ability_id': ability_id }):
 													uuidBool = False
 
-											try:
-												# Add the new ability to export
-												self._create_ac_ability(ability_id, await self.cti_svc.getMITREPhase(artObj.attackTech),
-																		artObj.attackTech, artObj.displayName,
-																		name, description,
-																		platform, executor,  
-																		b64encode(command.encode('utf-8')).decode('utf-8'))
-											except Exception as e:
-												print(e)
+											# Add the new ability to export
+											a = await self._create_ac_ability(ability_id=ability_id,
+																	tactic=await self.cti_svc.getMITREPhase(artObj.attackTech),
+																	technique_id=artObj.attackTech,
+																	technique_name=artObj.displayName,
+																	name=name,
+																	description=description,
+																	platform=platform,
+																	executor=executor,  
+																	b64encode(command.encode('utf-8')).decode('utf-8'),
+																	file_name=procFile)
+											procAbility.add(a.unique)
 
 											if 'input_arguments' in atomic.keys():
 												for argument in atomic['input_arguments'].keys():
@@ -177,9 +196,22 @@ class artDataService(BaseService):
 														elif curVar[0] == '\"':
 															curVar = curVar.strip('\"')
 														curVar = curVar.replace('\\\\', '\\')
-														self._create_ac_variable(ability_id, argument, b64encode(curVar.encode('utf-8')).decode('utf-8'))
+														b = await self._create_ac_variable(ability_id=ability_id,
+																				name=argument,
+																				value=b64encode(curVar.encode('utf-8')).decode('utf-8'),
+																				file_name=procFile)
+														procVariable.add(b.unique)
 													except:
 														pass
+
+						# Remove objects from memory that no longer exist on disk
+						for existing in await self.locate('art_abilities', match=dict(file_name=procFile)):
+							if existing.unique not in procAbility:
+								self.log.debug('Ability no longer exists on disk, removing: {}'.format(existing.unique))
+								await self.remove('art_abilities', match=dict(unique=existing.unique))
+						for existing in await self.locate('art_variables', match=dict(file_name=procFile)):
+							if existing.unique not in procVariable:
+								self.log.debug('Variable no longer exists on disk, removing: {}'.format(existing.unique))
 		else:
 			self.log.debug('Paths are not valid')
 			return 'Failed to load the Atomic Red Team tests.'
@@ -296,8 +328,20 @@ class artDataService(BaseService):
 				return False
 		return True
 
-	async def _create_ac_ability(self, ability_id, tactic, technique_id, technique_name, name, description, platform, executor, command):
-		await self.ac_store(artAbility(ability_id = ability_id, tactic = tactic, technique_id = technique_id, technique_name = technique_name, name = name, description = description, platform = platform, executor = executor, command = command))
+	async def _create_ac_ability(self, ability_id, tactic, technique_id, technique_name, name, description, platform, executor, command, file_name):
+		return await self.ac_store(artAbility(ability_id = ability_id,
+												tactic = tactic,
+												technique_id = technique_id,
+												technique_name = technique_name,
+												name = name,
+												description = description,
+												platform = platform,
+												executor = executor,
+												command = command,
+												file_hash = file_name))
 
-	async def _create_ac_variable(self, ability_id, name, value):
-		await self.ac_store(artVariable(ability_id = ability_id, name = name, value = value))
+	async def _create_ac_variable(self, ability_id, name, value, file_name):
+		return await self.ac_store(artVariable(ability_id = ability_id,
+									name = name,
+									value = value,
+									file_hash = file_name))
